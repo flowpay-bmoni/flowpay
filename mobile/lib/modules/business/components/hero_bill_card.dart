@@ -69,7 +69,7 @@ class HeroBillCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Disburse international payroll to Nigeria, Mexico & Canada with instant virtual cards — settled in one aggregate USD bill.',
+                      'Disburse international payroll to Nigeria (CNGN) & Mexico (MEXe) in parallel with instant virtual cards — settled in one single aggregate USD bill.',
                       style: FlowPayTypography.captionStyle(
                               color: FlowPayColors.textSecondary)
                           .copyWith(
@@ -81,7 +81,67 @@ class HeroBillCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 14),
+
+          // 3 Core Pillars: One Employer • Many Countries • One Bill
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: FlowPayColors.surfaceAlt,
+              borderRadius: FlowPayRadii.chip,
+              border: Border.all(color: FlowPayColors.hairline),
+            ),
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.business_rounded, size: 14, color: FlowPayColors.primary),
+                    SizedBox(width: 5),
+                    Text(
+                      '1 Employer',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: FlowPayColors.ink,
+                      ),
+                    ),
+                  ],
+                ),
+                Text('•', style: TextStyle(color: FlowPayColors.textTertiary)),
+                Row(
+                  children: [
+                    Icon(Icons.public_rounded, size: 14, color: FlowPayColors.accent),
+                    SizedBox(width: 5),
+                    Text(
+                      'Many Countries',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: FlowPayColors.ink,
+                      ),
+                    ),
+                  ],
+                ),
+                Text('•', style: TextStyle(color: FlowPayColors.textTertiary)),
+                Row(
+                  children: [
+                    Icon(Icons.receipt_long_rounded, size: 14, color: FlowPayColors.signal),
+                    SizedBox(width: 5),
+                    Text(
+                      '1 Bill',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: FlowPayColors.ink,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 14),
           const Divider(color: FlowPayColors.hairline, height: 1),
           const SizedBox(height: 16),
 
@@ -146,13 +206,13 @@ class HeroBillCard extends StatelessWidget {
           Row(
             children: [
               Text(
-                'BMONI Rail Fee: ${pending?.totalFeeUsd.formatFormatted() ?? "\$15.00"}',
+                'BMONI Rail Fee: ${pending?.totalFeeUsd.formatFormatted() ?? "\$10.00"}',
                 style: FlowPayTypography.captionStyle(
                     color: FlowPayColors.textSecondary),
               ),
               const Spacer(),
               Text(
-                'Traditional Wire: ~\$510.00',
+                'Traditional Wire: ~\$340.00',
                 style: FlowPayTypography.captionStyle(
                         color: FlowPayColors.textTertiary)
                     .copyWith(

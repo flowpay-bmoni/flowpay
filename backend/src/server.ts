@@ -1,7 +1,7 @@
 import cors from 'cors';
 import express, { type NextFunction, type Request, type Response } from 'express';
 import { env } from './config/env.js';
-import { FlowPayError } from './core/errors.js';
+import { FlowPayError, sanitizeBmoniError } from './core/errors.js';
 import { initDatabase } from './db/index.js';
 import { activityRouter } from './routes/activity.routes.js';
 import { aiRouter } from './routes/ai.routes.js';
@@ -52,13 +52,14 @@ app.use('/api/webhooks', webhookConfigRouter);
 
 // 6. Global Error Handler
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-  if (err instanceof FlowPayError) {
-    return res.status(err.statusCode).json({
+  const safeErr = sanitizeBmoniError(err);
+  if (safeErr instanceof FlowPayError) {
+    return res.status(safeErr.statusCode).json({
       success: false,
-      statusCode: err.statusCode,
-      code: err.code,
-      message: err.message,
-      details: err.details,
+      statusCode: safeErr.statusCode,
+      code: safeErr.code,
+      message: safeErr.message,
+      details: safeErr.details,
     });
   }
 
@@ -67,7 +68,7 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
     success: false,
     statusCode: 500,
     code: 'INTERNAL_SERVER_ERROR',
-    message: err.message || 'Internal Server Error',
+    message: 'An unexpected internal error occurred.',
   });
 });
 

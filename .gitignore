@@ -48,4 +48,11 @@ yarn-error.log*
 *.zip
 *.app
 
+# Gradle
+.gradle/
+**/.gradle/
+**/build/
 
+# Pitch deck & presentation exports
+deck/
+*.pdf

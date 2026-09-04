@@ -88,27 +88,33 @@ class _AiCommandBarState extends State<AiCommandBar> {
                 ),
               ),
               const SizedBox(width: 10),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'What should your money do?',
-                    style: FlowPayTypography.bodyLg.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: isDark
-                          ? FlowPayColors.darkTextPrimary
-                          : FlowPayColors.lightTextPrimary,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'What should your money do?',
+                      style: FlowPayTypography.bodyLg.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: isDark
+                            ? FlowPayColors.darkTextPrimary
+                            : FlowPayColors.lightTextPrimary,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                  const SizedBox(height: 1),
-                  Text(
-                    'Task-specific autonomous execution • Strictly PIN-signed',
-                    style: FlowPayTypography.caption.copyWith(
-                      color: FlowPayColors.primaryLight,
-                      fontWeight: FontWeight.w500,
+                    const SizedBox(height: 1),
+                    Text(
+                      'Task-specific autonomous execution • Strictly PIN-signed',
+                      style: FlowPayTypography.caption.copyWith(
+                        color: FlowPayColors.primaryLight,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ],
           ),

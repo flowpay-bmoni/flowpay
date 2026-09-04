@@ -90,169 +90,179 @@ class _PayrollScreenState extends State<PayrollScreen> {
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (ctx) => Container(
-        padding: const EdgeInsets.all(24),
-        decoration: const BoxDecoration(
-          color: FlowPayColors.surface,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: FlowPayColors.hairline,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            Row(
+      builder: (ctx) => SafeArea(
+        child: Container(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(ctx).size.height * 0.9,
+          ),
+          padding: const EdgeInsets.all(24),
+          decoration: const BoxDecoration(
+            color: FlowPayColors.surface,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: FlowPayColors.ink.withAlpha(15),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.verified_user_rounded,
-                      color: FlowPayColors.ink, size: 24),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Confirm Global Payroll',
-                        style: FlowPayTypography.title(color: FlowPayColors.ink)
-                            .copyWith(fontWeight: FontWeight.w700),
-                      ),
-                      Text(
-                        'One Employer. Many Countries. One Bill.',
-                        style: FlowPayTypography.captionStyle(
-                            color: FlowPayColors.textSecondary),
-                      ),
-                    ],
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: FlowPayColors.hairline,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
                   ),
                 ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            const Divider(color: FlowPayColors.hairline, height: 1),
-            const SizedBox(height: 16),
+                const SizedBox(height: 20),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: FlowPayColors.ink.withAlpha(15),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.verified_user_rounded,
+                          color: FlowPayColors.ink, size: 24),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Confirm Global Payroll',
+                            style: FlowPayTypography.title(color: FlowPayColors.ink)
+                                .copyWith(fontWeight: FontWeight.w700),
+                          ),
+                          Text(
+                            'One Employer. Many Countries. One Bill.',
+                            style: FlowPayTypography.captionStyle(
+                                color: FlowPayColors.textSecondary),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                const Divider(color: FlowPayColors.hairline, height: 1),
+                const SizedBox(height: 16),
 
-            // Summary grid: Employee count, Country count, Total
-            Row(
-              children: [
-                Expanded(
-                  child: _buildSummaryBox(
-                    label: 'TOTAL EMPLOYEES',
-                    value: '${_preview!.employeeCount}',
-                    icon: Icons.people_alt_rounded,
-                  ),
+                // Summary grid: Employee count, Country count, Total
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildSummaryBox(
+                        label: 'TOTAL EMPLOYEES',
+                        value: '${_preview!.employeeCount}',
+                        icon: Icons.people_alt_rounded,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _buildSummaryBox(
+                        label: 'COUNTRIES',
+                        value:
+                            '${_preview!.countries.length} (${_preview!.countries.join(', ')})',
+                        icon: Icons.public_rounded,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildSummaryBox(
-                    label: 'COUNTRIES',
-                    value:
-                        '${_preview!.countries.length} (${_preview!.countries.join(', ')})',
-                    icon: Icons.public_rounded,
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: FlowPayColors.surfaceAlt,
+                    borderRadius: FlowPayRadii.card,
+                    border: Border.all(color: FlowPayColors.hairline),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: FlowPayColors.surfaceAlt,
-                borderRadius: FlowPayRadii.card,
-                border: Border.all(color: FlowPayColors.hairline),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        'AGGREGATE DISBURSEMENT',
-                        style: FlowPayTypography.captionStyle(
-                                color: FlowPayColors.textTertiary)
-                            .copyWith(
-                          letterSpacing: 0.8,
-                          fontWeight: FontWeight.w600,
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'AGGREGATE DISBURSEMENT',
+                            style: FlowPayTypography.captionStyle(
+                                    color: FlowPayColors.textTertiary)
+                                .copyWith(
+                              letterSpacing: 0.8,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            _preview!.totalUsd.formatFormatted(),
+                            style:
+                                FlowPayTypography.display(color: FlowPayColors.ink)
+                                    .copyWith(
+                              fontSize: 24,
+                              fontFeatures: const [FontFeature.tabularFigures()],
+                            ),
+                          ),
+                        ],
+                      ),
+                      Container(
+                        padding:
+                            const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: FlowPayColors.signal.withAlpha(20),
+                          borderRadius: BorderRadius.circular(12),
+                          border:
+                              Border.all(color: FlowPayColors.signal.withAlpha(60)),
+                        ),
+                        child: Text(
+                          'Saved ${_preview!.totalSavedFeeUsd.formatFormatted()}',
+                          style: FlowPayTypography.captionStyle(
+                                  color: FlowPayColors.signal)
+                              .copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        _preview!.totalUsd.formatFormatted(),
-                        style:
-                            FlowPayTypography.display(color: FlowPayColors.ink)
-                                .copyWith(fontSize: 24),
-                      ),
                     ],
                   ),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: FlowPayColors.signal.withAlpha(20),
-                      borderRadius: BorderRadius.circular(12),
-                      border:
-                          Border.all(color: FlowPayColors.signal.withAlpha(60)),
-                    ),
-                    child: Text(
-                      'Saved ${_preview!.totalSavedFeeUsd.formatFormatted()}',
-                      style: FlowPayTypography.captionStyle(
-                              color: FlowPayColors.signal)
-                          .copyWith(
-                        fontWeight: FontWeight.w700,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Approving will create transfer proposals on your BMONI employer wallet and fan out local stablecoins to all employee smart wallets in parallel.',
+                  style: FlowPayTypography.captionStyle(
+                      color: FlowPayColors.textSecondary),
+                ),
+                const SizedBox(height: 24),
+
+                // Actions: Cancel & Approve Payroll
+                Row(
+                  children: [
+                    Expanded(
+                      child: FlowPayButton(
+                        text: 'Cancel',
+                        isSecondary: true,
+                        onPressed: () => Navigator.pop(ctx),
                       ),
                     ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Approving will create transfer proposals on your BMONI employer wallet and fan out local stablecoins to all employee smart wallets in parallel.',
-              style: FlowPayTypography.captionStyle(
-                  color: FlowPayColors.textSecondary),
-            ),
-            const SizedBox(height: 24),
-
-            // Actions: Cancel & Approve Payroll
-            Row(
-              children: [
-                Expanded(
-                  child: FlowPayButton(
-                    text: 'Cancel',
-                    isSecondary: true,
-                    onPressed: () => Navigator.pop(ctx),
-                  ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: FlowPayButton(
+                        text: 'Approve Payroll',
+                        icon: Icons.check_circle_rounded,
+                        onPressed: () {
+                          Navigator.pop(ctx);
+                          _startPayrollExecution();
+                        },
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: FlowPayButton(
-                    text: 'Approve Payroll',
-                    icon: Icons.check_circle_rounded,
-                    onPressed: () {
-                      Navigator.pop(ctx);
-                      _startPayrollExecution();
-                    },
-                  ),
-                ),
+                const SizedBox(height: 16),
               ],
             ),
-            const SizedBox(height: 16),
-          ],
+          ),
         ),
       ),
     );
@@ -787,6 +797,7 @@ class _PayrollScreenState extends State<PayrollScreen> {
 
     return FlowPayCard(
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
@@ -804,21 +815,72 @@ class _PayrollScreenState extends State<PayrollScreen> {
                       : 'READY TO RUN'),
             ],
           ),
-          const SizedBox(height: 16),
-          Text(
-            'TOTAL AGGREGATE SETTLEMENT',
-            style: FlowPayTypography.captionStyle(
-                    color: FlowPayColors.textTertiary)
-                .copyWith(
-              letterSpacing: 0.8,
-              fontWeight: FontWeight.w600,
+          const SizedBox(height: 10),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            decoration: BoxDecoration(
+              color: FlowPayColors.ink.withAlpha(8),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: FlowPayColors.hairline),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  '1 Employer',
+                  style: FlowPayTypography.captionStyle(color: FlowPayColors.ink)
+                      .copyWith(fontWeight: FontWeight.w600, fontSize: 11),
+                ),
+                Text(
+                  '  •  ',
+                  style: FlowPayTypography.captionStyle(
+                      color: FlowPayColors.textTertiary),
+                ),
+                Text(
+                  'Many Countries',
+                  style: FlowPayTypography.captionStyle(color: FlowPayColors.ink)
+                      .copyWith(fontWeight: FontWeight.w600, fontSize: 11),
+                ),
+                Text(
+                  '  •  ',
+                  style: FlowPayTypography.captionStyle(
+                      color: FlowPayColors.textTertiary),
+                ),
+                Text(
+                  '1 Bill',
+                  style: FlowPayTypography.captionStyle(color: FlowPayColors.ink)
+                      .copyWith(fontWeight: FontWeight.w600, fontSize: 11),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 6),
-          Text(
-            totalFormatted,
-            style: FlowPayTypography.display(color: FlowPayColors.ink)
-                .copyWith(fontSize: 34),
+          const SizedBox(height: 16),
+          Center(
+            child: Column(
+              children: [
+                Text(
+                  'TOTAL AGGREGATE SETTLEMENT',
+                  style: FlowPayTypography.captionStyle(
+                          color: FlowPayColors.textTertiary)
+                      .copyWith(
+                    letterSpacing: 0.8,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    totalFormatted,
+                    style: FlowPayTypography.display(color: FlowPayColors.ink)
+                        .copyWith(
+                      fontSize: 34,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 14),
           const Divider(color: FlowPayColors.hairline, height: 1),

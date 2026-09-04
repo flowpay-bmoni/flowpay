@@ -1,8 +1,8 @@
 import 'dart:convert';
-import 'dart:io' show Platform;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:http/http.dart' as http;
+import '../config/api_config.dart';
 import 'account_capabilities.dart';
 import 'app_lock_service.dart';
 import 'secure_storage_service.dart';
@@ -99,10 +99,8 @@ final accountCapabilitiesProvider =
   try {
     final bmoniUserId =
         await storage.getBmoniUserId() ?? 'usr_flowpay_sandbox_master';
-    final host =
-        Platform.isAndroid ? 'http://10.0.2.2:4000' : 'http://localhost:4000';
-    final uri =
-        Uri.parse('$host/api/auth/capabilities?bmoniUserId=$bmoniUserId');
+    final uri = Uri.parse(
+        '${ApiConfig.baseUrl}/api/auth/capabilities?bmoniUserId=$bmoniUserId');
 
     final response = await http.get(uri).timeout(const Duration(seconds: 4));
     if (response.statusCode == 200) {

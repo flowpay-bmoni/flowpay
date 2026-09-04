@@ -37,7 +37,8 @@ dependencies:
   google_fonts: ^6.2.1
   flutter_svg: ^2.0.10+1
   # BMONI On-Device B-Key Signer SDK (Keystore / Secure Enclave)
-  bmoni_embedded_sdk: ^0.0.2
+  bmoni_embedded_sdk:
+    path: packages/bmoni_embedded_sdk
 
 dev_dependencies:
   flutter_test:

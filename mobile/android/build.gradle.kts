@@ -2,17 +2,6 @@ allprojects {
     repositories {
         google()
         mavenCentral()
-        maven {
-            url = uri("https://maven.pkg.github.com/bkey-inc/package-distribution")
-            credentials {
-                username = providers.gradleProperty("bkey.gpr.user").orNull
-                    ?: System.getenv("USERNAME")
-                    ?: System.getenv("GITHUB_ACTOR")
-                password = providers.gradleProperty("bkey.gpr.key").orNull
-                    ?: System.getenv("TOKEN")
-                    ?: System.getenv("GITHUB_TOKEN")
-            }
-        }
     }
 }
 

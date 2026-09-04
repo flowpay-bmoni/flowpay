@@ -168,7 +168,7 @@ class _EmployeeRowCard extends StatelessWidget {
                 ),
               ),
               // Onboarding Lifecycle Stage Badge
-              _LifecycleBadge(status: employee.status),
+              FlowPayStatusBadge(status: employee.status),
             ],
           ),
           const SizedBox(height: 12),
@@ -224,78 +224,6 @@ class _EmployeeRowCard extends StatelessWidget {
             ],
           ),
         ],
-      ),
-    );
-  }
-}
-
-/// Lifecycle badge supporting the 6 stages:
-/// CREATED, WALLET_PENDING, KYC_PENDING, ONBOARDING, READY, FAILED
-class _LifecycleBadge extends StatelessWidget {
-  final String status;
-
-  const _LifecycleBadge({required this.status});
-
-  @override
-  Widget build(BuildContext context) {
-    final upper = status.toUpperCase();
-    Color bg;
-    Color fg;
-    String label;
-
-    switch (upper) {
-      case 'CREATED':
-        bg = Colors.blue.withValues(alpha: 0.15);
-        fg = Colors.blueAccent;
-        label = 'CREATED';
-        break;
-      case 'WALLET_PENDING':
-        bg = Colors.purple.withValues(alpha: 0.15);
-        fg = Colors.purpleAccent;
-        label = 'WALLET PENDING';
-        break;
-      case 'KYC_PENDING':
-        bg = Colors.amber.withValues(alpha: 0.15);
-        fg = Colors.amber[700] ?? Colors.amber;
-        label = 'KYC PENDING';
-        break;
-      case 'ONBOARDING':
-        bg = Colors.orange.withValues(alpha: 0.15);
-        fg = Colors.orangeAccent;
-        label = 'ONBOARDING';
-        break;
-      case 'READY':
-      case 'ACTIVE':
-      case 'LINKED':
-        bg = FlowPayColors.signal.withValues(alpha: 0.15);
-        fg = FlowPayColors.signal;
-        label = 'READY';
-        break;
-      case 'FAILED':
-        bg = FlowPayColors.error.withValues(alpha: 0.15);
-        fg = FlowPayColors.error;
-        label = 'FAILED';
-        break;
-      default:
-        bg = FlowPayColors.surfaceAlt;
-        fg = FlowPayColors.textSecondary;
-        label = upper;
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: fg,
-          fontSize: 10,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 0.5,
-        ),
       ),
     );
   }

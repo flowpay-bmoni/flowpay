@@ -70,7 +70,7 @@ export class TransferService {
     });
 
     // 32-byte SHA-256 hash to be signed on-device via BMONI SDK (EIP-191 / raw hash)
-    const hashToSign = `0x${crypto.createHash('sha256').update(canonicalPayload).digest('hex')}`;
+    let hashToSign = `0x${crypto.createHash('sha256').update(canonicalPayload).digest('hex')}`;
 
     let bmoniProposalId = proposalId;
     let signPayload = hashToSign;
@@ -104,6 +104,7 @@ export class TransferService {
 
         if (payloadRes.hashToSign) {
           signPayload = payloadRes.hashToSign;
+          hashToSign = payloadRes.hashToSign;
         }
       } catch (err: any) {
         console.warn('[BMONI Client] Live proposal creation call failed, using deterministic proposal hash:', err.message);

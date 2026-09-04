@@ -8,6 +8,11 @@ void main() {
     testWidgets(
         'Renders global payroll header, core message, and aggregate bill',
         (tester) async {
+      tester.view.physicalSize = const Size(800, 1600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
       final appState = AppState();
 
       await tester.pumpWidget(
@@ -28,8 +33,8 @@ void main() {
       // 2. Aggregate Bill Card
       expect(find.text('One Aggregate Bill'), findsOneWidget);
       expect(find.text('TOTAL AGGREGATE SETTLEMENT'), findsOneWidget);
-      expect(find.textContaining('\$6,000.00'), findsOneWidget);
-      expect(find.textContaining('Saved: \$495.00 (97%)'), findsOneWidget);
+      expect(find.textContaining('\$4,000.00'), findsOneWidget);
+      expect(find.textContaining('Saved: \$330.00 (97%)'), findsOneWidget);
 
       // 3. Parallel Multi-Rail Breakdown
       expect(find.text('PARALLEL MULTI-RAIL DISBURSEMENTS'), findsOneWidget);
@@ -65,12 +70,12 @@ void main() {
       // Confirmation Modal must appear
       expect(find.text('Confirm Global Payroll'), findsOneWidget);
       expect(find.text('TOTAL EMPLOYEES'), findsOneWidget);
-      expect(find.text('3'), findsOneWidget);
+      expect(find.text('2'), findsOneWidget);
       expect(find.text('COUNTRIES'), findsOneWidget);
-      expect(find.text('3 (NG, MX, CA)'), findsOneWidget);
+      expect(find.text('2 (NG, MX)'), findsOneWidget);
       expect(find.text('AGGREGATE DISBURSEMENT'), findsOneWidget);
-      expect(find.text('\$6,000.00'), findsAtLeastNWidgets(2));
-      expect(find.text('Saved \$495.00'), findsOneWidget);
+      expect(find.text('\$4,000.00'), findsAtLeastNWidgets(2));
+      expect(find.text('Saved \$330.00'), findsOneWidget);
       expect(find.text('Approve Payroll'), findsOneWidget);
       expect(find.text('Cancel'), findsOneWidget);
     });

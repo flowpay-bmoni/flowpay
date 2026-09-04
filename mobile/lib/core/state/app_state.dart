@@ -44,12 +44,18 @@ class AppState extends ChangeNotifier {
 
   // Demo Repositories
   final DemoWalletRepository _demoWallet = DemoWalletRepository();
-  final DemoTransferRepository _demoTransfer = DemoTransferRepository();
+  final DemoActivityRepository _demoActivity = DemoActivityRepository();
+  late final DemoTransferRepository _demoTransfer = DemoTransferRepository(
+    activityRepo: _demoActivity,
+    walletRepo: _demoWallet,
+  );
   final DemoCardRepository _demoCard = DemoCardRepository();
   final DemoEmployeeRepository _demoEmployee = DemoEmployeeRepository();
   final DemoPayrollRepository _demoPayroll = DemoPayrollRepository();
-  final DemoActivityRepository _demoActivity = DemoActivityRepository();
-  final DemoMissionRepository _demoMission = DemoMissionRepository();
+  late final DemoMissionRepository _demoMission = DemoMissionRepository(
+    activityRepo: _demoActivity,
+    walletRepo: _demoWallet,
+  );
   final DemoApprovalRepository _demoApproval = DemoApprovalRepository();
   late final DemoBusinessAuditRepository _demoAudit =
       DemoBusinessAuditRepository(
