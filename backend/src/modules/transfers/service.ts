@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 import { bmoniClient } from '../../bmoni/client.js';
 import { env } from '../../config/env.js';
-import { prisma } from '../../db/index.js';
+import { isPostgresDb, prisma } from '../../db/index.js';
 import { TransferInterpreter } from '../ai/transfer_interpreter.js';
 import type {
   BalanceInspectionResult,
@@ -179,34 +179,64 @@ export class TransferService {
     const recipient = proposalPayload?.intent.recipient ?? 'Beneficiary';
     const purpose = proposalPayload?.intent.purpose ?? 'Transfer';
 
-    // Persist into PostgreSQL audit_activity table via Prisma
-    try {
-      await prisma.auditActivity.create({
-        data: {
-          id: activityId,
-          category: 'PERSONAL',
-          action: 'TRANSFER_COMPLETED',
-          actor: userId,
-          detailsJson: {
-            transferId: proposalId,
-            recipient,
-            amount: targetAmount,
-            currency: targetCurrency,
-            fundingWallet,
-            fundingCurrency,
-            totalDebited,
-            conversion,
-            exchangeRate,
-            purpose,
-            transactionHash: txHash,
-            proposalId,
-            bmoniStatus: 'COMPLETED',
-            executedAt: new Date().toISOString(),
+    if (isPostgresDb()) {
+      // Persist into PostgreSQL audit_activity table via Prisma
+      try {
+        await prisma.auditActivity.create({
+          data: {
+            id: activityId,
+            category: 'PERSONAL',
+            action: 'TRANSFER_COMPLETED',
+            actor: userId,
+            detailsJson: {
+              transferId: proposalId,
+              recipient,
+              amount: targetAmount,
+              currency: targetCurrency,
+              fundingWallet,
+              fundingCurrency,
+              totalDebited,
+              conversion,
+              exchangeRate,
+              purpose,
+              transactionHash: txHash,
+              proposalId,
+              bmoniStatus: 'COMPLETED',
+              executedAt: new Date().toISOString(),
+            },
           },
-        },
-      });
-    } catch (dbErr: any) {
-      console.warn('[Audit Activity] Failed to write activity record to PostgreSQL:', dbErr.message);
+        });
+      } catch (dbErr: any) {
+        console.warn('[Audit Activity] Failed to write activity record to PostgreSQL:', dbErr.message);
+      }
+
+      // Persist into Supabase public.transfers table via Prisma
+      try {
+        const amountMinor = BigInt(Math.round((parseFloat(targetAmount) || 0) * 100));
+        const totalDebitMinor = BigInt(proposalPayload?.fundingOption.totalDebitMinor || Number(amountMinor));
+        await prisma.transfer.create({
+          data: {
+            id: `tx_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+            proposalId,
+            userId,
+            recipient,
+            recipientAddress: proposalPayload?.intent.recipient.startsWith('0x') ? proposalPayload.intent.recipient : null,
+            amountMinor,
+            currency: targetCurrency,
+            fundingWalletId: proposalPayload?.fundingOption.fundingWalletId || 'sw_default',
+            fundingCurrency,
+            totalDebitMinor,
+            exchangeRate: exchangeRate ? exchangeRate.toString() : null,
+            feeMinor: BigInt(proposalPayload?.fundingOption.networkFeeMinor || 0) + BigInt(proposalPayload?.fundingOption.fxFeeMinor || 0),
+            status: 'COMPLETED',
+            transactionHash: txHash,
+            purpose,
+            executedAt: new Date(),
+          },
+        });
+      } catch (txDbErr: any) {
+        console.warn('[Transfers] Non-blocking DB transfer persistence notice:', txDbErr.message);
+      }
     }
 
     return {

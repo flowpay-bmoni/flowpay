@@ -121,12 +121,32 @@ FlowPay is an intelligent financial operating layer built on top of BMONI infras
     * Full test suite passing: 13/13 mobile tests passed (100%), 11/11 backend tests passed (100%), with 0 analyzer lints.
 * [x] **Supabase Cloud Database & MCP Integration**:
   * Authorized and linked to live Supabase project `mxjbzexlnenooclmaawe` via Supabase MCP.
-  * Successfully deployed full relational schema: `employees`, `payroll_runs`, `payroll_items`, `money_missions`, `audit_activity`, `webhook_events`, `webhook_subscriptions`.
-  * Enabled Row Level Security (RLS) across 100% of tables with backend `service_role` and `authenticated` access policies.
-  * Verified performance indexes on foreign keys and search paths.
+  * Successfully deployed full relational schema of **14 tables** with 100% Row Level Security (RLS) and security policies for `service_role` and `authenticated` access:
+    1. `public.users` (user accounts, personas, capabilities, KYC/KYB tier, business metadata).
+    2. `public.employees` (multi-country workforce, BMONI wallet IDs, onboarding status).
+    3. `public.smart_wallets` (ERC-4337 smart wallets, balances, currency rails: USDB, CNGN, CADC, EURe, GBPe, MEXe).
+    4. `public.virtual_cards` (BMONI virtual Mastercard records, card tokens, PAN mask, spend limits, reservation status).
+    5. `public.card_transactions` (card authorization, settlement, merchant data, fees).
+    6. `public.transfers` (NL-initiated transfers, proposal IDs, debits, exchange rates, hashes).
+    7. `public.payroll_runs` (multi-country aggregate payroll runs, 4-stage execution, savings calculations).
+    8. `public.payroll_items` (individual employee payroll line items with destination stablecoins).
+    9. `public.invoices` (aggregate payroll billing records, status, PDF references).
+    10. `public.money_missions` (autonomous rules, sweep/save triggers, execution statistics).
+    11. `public.pending_approvals` (dual-control governance, threshold-gated disbursements, expiration timers).
+    12. `public.audit_activity` (tamper-evident corporate & personal audit ledger, JSON detail snapshots).
+    13. `public.webhook_events` (raw HMAC-verified BMONI webhook payloads with idempotent replay protection).
+    14. `public.webhook_subscriptions` (registered partner webhook listener endpoints and secret hashes).
+  * Enforced foreign keys with `ON DELETE CASCADE` where applicable, and created performance indexes on all foreign keys, status columns, and lookup filters.
   * Verified Supabase Security Advisors (0 security warnings / 0 lints).
-  * Seeded pre-verified BMONI sandbox personas (Bunch Dillon 🇳🇬, Samson Jabo 🇲🇽) and default Money Missions.
-  * Auto-generated TypeScript types at `backend/src/db/supabase.types.ts` directly from Supabase schema.
+  * Synchronized Prisma ORM (`backend/prisma/schema.prisma`) with all 14 models and regenerated `@prisma/client`.
+  * Auto-generated TypeScript types at `backend/src/db/supabase.types.ts` directly from live Supabase schema via `supabase.generate_typescript_types`.
+  * Synchronized local SQL references in `backend/src/db/supabase_schema.sql` and `backend/src/db/schema.sql`.
+  * Wired database persistence with `isPostgresDb()` environment-safe guards across:
+    * `backend/src/routes/auth.routes.ts` (`signup`, `kyc`, `resolveCapabilities`).
+    * `backend/src/modules/cards/service.ts` (`createVirtualCard`, `listCards`, `updateCardStatus`).
+    * `backend/src/modules/wallets/service.ts` (`getWallets`, `createManagedWallet`).
+    * `backend/src/modules/transfers/service.ts` (`executeTransfer`).
+  * Full test suite passing: 69/69 backend tests passed (100%), 0 failures across 6 test suites.
 * [x] **Signup Screen, Context-Aware KYC, and Personal vs Business Separation**:
   * **Onboarding & Signup Screen (`mobile/lib/modules/auth/signup_screen.dart`)**:
     * Clean BMoni Dark Obsidian aesthetic (`BMoniColors.offbrand950`, `brand500` magenta accents).

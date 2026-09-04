@@ -1,4 +1,5 @@
 import { bmoniClient } from '../../bmoni/client.js';
+import { prisma, isPostgresDb } from '../../db/index.js';
 import { BmoniApiError, CardEnrollmentRequiredError, ValidationError } from '../../core/errors.js';
 import type {
   BmoniCard,
@@ -73,8 +74,10 @@ export class CardService {
     // Default to FlowPay Amber per design.md §4.5
     const cardColor = args.cardColor || '#F4B740';
 
+    let cardResponse: CreateCardResponse;
+
     try {
-      return await bmoniClient.createVirtualCard({
+      cardResponse = await bmoniClient.createVirtualCard({
         ...args,
         cardColor,
       });
@@ -104,7 +107,7 @@ export class CardService {
         .padEnd(64, '0')
         .slice(0, 64)}`;
 
-      return {
+      cardResponse = {
         flow: 'group',
         feeAmount: args.currency === 'NGN' ? '1000' : '2',
         feeCurrency: args.currency,
@@ -135,6 +138,40 @@ export class CardService {
         },
       };
     }
+
+    // Persist card proposal into Supabase public.virtual_cards
+    if (isPostgresDb() && cardResponse?.card) {
+      try {
+        const c = cardResponse.card;
+        await prisma.virtualCard.upsert({
+          where: { id: c.id },
+          create: {
+            id: c.id,
+            bmoniCardId: c.id,
+            userId: args.userId,
+            smartWalletId: args.smartWalletId,
+            cardName: args.cardName,
+            cardColor,
+            currency: args.currency,
+            cardType: 'virtual',
+            status: c.status || 'RESERVED',
+            last4: c.last4 || '4289',
+            maskedPan: c.maskedPan || '•••• •••• •••• 4289',
+            expirationDate: c.expirationDate || '08/29',
+            isReserved: c.isReserved ?? true,
+            proposalId: cardResponse.proposalId,
+          },
+          update: {
+            status: c.status,
+            isReserved: c.isReserved,
+          },
+        });
+      } catch (dbErr) {
+        console.warn('[CardService] Non-blocking DB card persistence notice:', (dbErr as any)?.message || dbErr);
+      }
+    }
+
+    return cardResponse;
   }
 
   /**
@@ -204,7 +241,39 @@ export class CardService {
       const cards = await bmoniClient.listCards(userId, smartWalletId);
       if (cards && cards.length > 0) return cards;
     } catch (err) {
-      console.warn('[CardService] BMONI listCards fallback to sandbox defaults:', err);
+      console.warn('[CardService] BMONI listCards fallback to database/sandbox:', err);
+    }
+
+    // Attempt database retrieval from Supabase public.virtual_cards
+    if (isPostgresDb()) {
+      try {
+        const dbCards = await prisma.virtualCard.findMany({
+          where: smartWalletId ? { smartWalletId } : { userId },
+          orderBy: { createdAt: 'desc' },
+        });
+        if (dbCards && dbCards.length > 0) {
+          return dbCards.map((c) => ({
+            id: c.id,
+            userId: c.userId,
+            smartWalletId: c.smartWalletId,
+            cardName: c.cardName,
+            cardColor: c.cardColor,
+            currency: c.currency as 'USD' | 'NGN',
+            type: c.cardType as 'virtual',
+            status: c.status as any,
+            isReserved: c.isReserved,
+            last4: c.last4,
+            maskedPan: c.maskedPan,
+            expirationDate: c.expirationDate,
+            balanceMinor: c.currency === 'USD' ? '250000' : '100000000',
+            spendLimit: c.monthlySpendLimitMinor ? { monthlyMinor: Number(c.monthlySpendLimitMinor) } : undefined,
+            proposalId: c.proposalId || undefined,
+            createdAt: c.createdAt.toISOString(),
+          }));
+        }
+      } catch (dbErr) {
+        console.warn('[CardService] Non-blocking DB listCards notice:', (dbErr as any)?.message || dbErr);
+      }
     }
 
     // Default FlowPay Amber virtual cards
@@ -394,6 +463,19 @@ export class CardService {
     } catch (err) {
       console.warn('[CardService] Fallback status update:', err);
     }
+
+    // Update in Supabase public.virtual_cards
+    if (isPostgresDb()) {
+      try {
+        await prisma.virtualCard.updateMany({
+          where: { id: cardId },
+          data: { status },
+        });
+      } catch (dbErr) {
+        console.warn('[CardService] Non-blocking DB status update notice:', (dbErr as any)?.message || dbErr);
+      }
+    }
+
     return { status };
   }
 }

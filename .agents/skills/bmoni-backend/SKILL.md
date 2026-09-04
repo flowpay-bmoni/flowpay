@@ -18,7 +18,7 @@ description: >-
 
 ## 2. Key Files & Architecture
 - `src/config/env.ts`: Typed environment validation. Enforces origin-only BMONI base URL (`https://embedded-dev.bmoni.com`) by stripping any trailing `/v1`.
-- `src/db/`: PostgreSQL pool connection (`index.ts`) and relational schema (`schema.sql`). Automatically runs idempotent migrations and seeds default sandbox personas (Bunch Dillon & Samson Jabo).
+- `src/db/`: Supabase PostgreSQL connection (`index.ts`, `prisma/schema.prisma`) and relational schemas (`schema.sql`, `supabase_schema.sql`, `supabase.types.ts`). Deploys 14 relational tables with 100% RLS coverage (`users`, `employees`, `smart_wallets`, `virtual_cards`, `card_transactions`, `transfers`, `payroll_runs`, `payroll_items`, `invoices`, `money_missions`, `pending_approvals`, `audit_activity`, `webhook_events`, `webhook_subscriptions`). Includes `isPostgresDb()` guard for zero-error test isolation.
 - `src/core/money.ts`: Central `Money` abstraction. Guarantees integer minor-unit calculations with zero floating-point arithmetic.
 - `src/bmoni/client.ts`: Safe BMONI REST client handling timeouts, safe logging, structured error responses, `createEmployeeUser` (`POST /v1/users`), and `subscribeWebhook` (`POST /v1/webhooks/config`).
 - `src/bmoni/webhooks.ts`: Constant-time HMAC-SHA256 verification using raw Buffer request bodies, dispatching 6-stage lifecycle transitions (`onboarding.completed`, `onboarding.failed`, `kyc.action_required`, `employee.linked`, `employee.vba.registered`).
@@ -30,7 +30,7 @@ description: >-
 - `src/modules/missions/`: Money Missions backend subsystem:
   - `types.ts`: Strongly typed interfaces (`MissionIntent`, `MissionAllocation`, `MissionStatus`, `MissionProposalPayload`, etc.).
   - `validator.ts`: Deterministic `MissionValidator` ensuring 100% split totals, minor-unit positive amounts, allowlisted currencies (`USD`, `NGN`, `MXN`, `CAD`, `EUR`), and allowed action types.
-  - `service.ts`: `MoneyMissionService` managing mission proposals with SHA-256 hashes, B-Key signature verification, transactional execution, and audit logging into `audit_activity`.
+  - `service.ts`: `MoneyMissionService` managing mission proposals with SHA-256 hashes, B-Key signature verification, transactional execution, and audit logging into `audit_activity`. Includes resilient `isPostgresDb()` environment guard, self-derived `MoneyMissionRecord` Prisma types, and persistent in-memory fallback for offline sandbox operation.
   - Routes (`src/routes/missions.routes.ts`, `src/routes/ai.routes.ts`): `POST /api/ai/missions/interpret`, `GET /api/missions`, `POST /api/missions/propose`, `POST /api/missions/:id/execute`, `PATCH /api/missions/:id/toggle`.
 
 ---

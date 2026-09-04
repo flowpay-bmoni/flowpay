@@ -1,5 +1,5 @@
 // FlowPay Prisma Schema
-// Mirrors the existing PostgreSQL DDL in src/db/schema.sql
+// Mirrors the PostgreSQL DDL in src/db/schema.sql and src/db/supabase_schema.sql
 
 generator client {
   provider = "prisma-client-js"
@@ -10,29 +10,180 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Employee {
+model User {
   id             String   @id
-  bmoniUserId    String?  @map("bmoni_user_id")
-  partnerId      String   @map("partner_id")
-  firstName      String   @map("first_name")
-  lastName       String   @map("last_name")
+  bmoniUserId    String?  @unique @map("bmoni_user_id")
   email          String   @unique
+  fullName       String   @map("full_name")
   phoneNumber    String?  @map("phone_number")
-  country        String   // 'NG', 'MX', 'CA', 'US', etc.
-  targetCurrency String   @map("target_currency") // 'NGN', 'MXN', 'USD', 'EUR', etc.
-  payrollAmountMinor Int  @default(0) @map("payroll_amount_minor")
-  payrollCurrency    String? @map("payroll_currency")
-  walletId       String?  @map("wallet_id")
-  walletAddress  String?  @map("wallet_address")
-  cardId         String?  @map("card_id")
-  status         String   @default("INVITED") // 'INVITED', 'LINKED', 'ACTIVE', 'SUSPENDED'
-  failedStage    String?  @map("failed_stage")
+  accountType    String   @default("personal") @map("account_type") // 'personal', 'business', 'both'
+  country        String   @default("US")
+  companyName    String?  @map("company_name")
+  companyRole    String?  @default("ADMIN") @map("company_role")
+  kycStatus      String   @default("unverified") @map("kyc_status") // 'unverified', 'pending', 'verified'
+  nationalId     String?  @map("national_id")
   createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt      DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  @@index([email], name: "idx_users_email")
+  @@index([bmoniUserId], name: "idx_users_bmoni_user_id")
+  @@map("users")
+}
+
+model Employee {
+  id                 String        @id
+  bmoniUserId        String?       @map("bmoni_user_id")
+  partnerId          String        @map("partner_id")
+  firstName          String        @map("first_name")
+  lastName           String        @map("last_name")
+  email              String        @unique
+  phoneNumber        String?       @map("phone_number")
+  country            String        // 'NG', 'MX', 'CA', 'US', etc.
+  targetCurrency     String        @map("target_currency") // 'NGN', 'MXN', 'USD', 'EUR', etc.
+  payrollAmountMinor Int           @default(0) @map("payroll_amount_minor")
+  payrollCurrency    String?       @map("payroll_currency")
+  walletId           String?       @map("wallet_id")
+  walletAddress      String?       @map("wallet_address")
+  cardId             String?       @map("card_id")
+  status             String        @default("INVITED") // 'INVITED', 'LINKED', 'ACTIVE', 'SUSPENDED'
+  failedStage        String?       @map("failed_stage")
+  createdAt          DateTime      @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt          DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+  cards              VirtualCard[]
 
   @@index([email], name: "idx_employees_email")
   @@index([bmoniUserId], name: "idx_employees_bmoni_user_id")
   @@map("employees")
+}
+
+model VirtualCard {
+  id                     String            @id
+  bmoniCardId            String?           @map("bmoni_card_id")
+  userId                 String            @map("user_id")
+  employeeId             String?           @map("employee_id")
+  smartWalletId          String            @map("smart_wallet_id")
+  cardName               String            @map("card_name")
+  cardColor              String            @default("#F4B740") @map("card_color")
+  currency               String            @default("USD")
+  cardType               String            @default("virtual") @map("card_type")
+  status                 String            @default("ACTIVE") // 'ACTIVE', 'BLOCKED', 'RESERVED', 'TERMINATED'
+  last4                  String
+  maskedPan              String            @map("masked_pan")
+  expirationDate         String            @map("expiration_date")
+  monthlySpendLimitMinor BigInt?           @default(0) @map("monthly_spend_limit_minor")
+  isReserved             Boolean           @default(false) @map("is_reserved")
+  proposalId             String?           @map("proposal_id")
+  createdAt              DateTime          @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt              DateTime          @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  employee               Employee?         @relation(fields: [employeeId], references: [id], onDelete: SetNull)
+  transactions           CardTransaction[]
+
+  @@index([userId], name: "idx_virtual_cards_user")
+  @@index([employeeId], name: "idx_virtual_cards_employee")
+  @@map("virtual_cards")
+}
+
+model CardTransaction {
+  id           String      @id
+  cardId       String      @map("card_id")
+  userId       String      @map("user_id")
+  merchantName String      @map("merchant_name")
+  category     String
+  amountMajor  Decimal     @map("amount_major") @db.Decimal(12, 2)
+  currency     String      @default("USD")
+  status       String      @default("COMPLETED")
+  timestamp    DateTime    @default(now()) @db.Timestamptz
+  createdAt    DateTime    @default(now()) @map("created_at") @db.Timestamptz
+
+  card         VirtualCard @relation(fields: [cardId], references: [id], onDelete: Cascade)
+
+  @@index([cardId], name: "idx_card_tx_card_id")
+  @@map("card_transactions")
+}
+
+model SmartWallet {
+  id               String   @id
+  bmoniWalletId    String?  @map("bmoni_wallet_id")
+  userId           String   @map("user_id")
+  address          String
+  userOwnerAddress String   @map("user_owner_address")
+  currency         String
+  chain            String   @default("base-sepolia")
+  status           String   @default("active")
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt        DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  @@index([userId], name: "idx_smart_wallets_user")
+  @@index([address], name: "idx_smart_wallets_address")
+  @@map("smart_wallets")
+}
+
+model Transfer {
+  id                String    @id
+  proposalId        String?   @unique @map("proposal_id")
+  userId            String    @map("user_id")
+  recipient         String
+  recipientAddress  String?   @map("recipient_address")
+  amountMinor       BigInt    @map("amount_minor")
+  currency          String
+  fundingWalletId   String    @map("funding_wallet_id")
+  fundingCurrency   String    @map("funding_currency")
+  totalDebitMinor   BigInt    @map("total_debit_minor")
+  exchangeRate      Decimal?  @map("exchange_rate") @db.Decimal(18, 8)
+  feeMinor          BigInt?   @default(0) @map("fee_minor")
+  status            String    @default("COMPLETED")
+  transactionHash   String?   @map("transaction_hash")
+  purpose           String?
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  executedAt        DateTime? @map("executed_at") @db.Timestamptz
+
+  @@index([userId], name: "idx_transfers_user")
+  @@index([proposalId], name: "idx_transfers_proposal")
+  @@map("transfers")
+}
+
+model PendingApproval {
+  id                String        @id
+  userId            String        @map("user_id")
+  approvalType      String        @map("approval_type") // 'MISSION_EXECUTION', 'TRANSFER', 'FX_CONVERSION', 'PAYROLL'
+  title             String
+  description       String
+  amountMinor       BigInt        @map("amount_minor")
+  currency          String
+  targetCurrency    String?       @map("target_currency")
+  targetAmountMinor BigInt?       @map("target_amount_minor")
+  exchangeRate      Decimal?      @map("exchange_rate") @db.Decimal(18, 8)
+  recipient         String?
+  ruleId            String?       @map("rule_id")
+  status            String        @default("PENDING") // 'PENDING', 'APPROVED', 'REJECTED', 'EXPIRED'
+  metadataJson      Json          @default("{}") @map("metadata_json")
+  expiresAt         DateTime?     @map("expires_at") @db.Timestamptz
+  createdAt         DateTime      @default(now()) @map("created_at") @db.Timestamptz
+
+  rule              MoneyMission? @relation(fields: [ruleId], references: [id], onDelete: SetNull)
+
+  @@index([userId, status], name: "idx_pending_approvals_user")
+  @@map("pending_approvals")
+}
+
+model Invoice {
+  id            String    @id
+  userId        String    @map("user_id")
+  invoiceNumber String    @map("invoice_number")
+  clientName    String    @map("client_name")
+  clientEmail   String?   @map("client_email")
+  amountMinor   BigInt    @map("amount_minor")
+  currency      String    @default("USD")
+  description   String?
+  dueDate       DateTime? @map("due_date") @db.Timestamptz
+  status        String    @default("DRAFT") // 'DRAFT', 'SENT', 'PAID', 'OVERDUE', 'CANCELLED'
+  paymentLink   String?   @map("payment_link")
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt     DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  @@index([userId], name: "idx_invoices_user")
+  @@map("invoices")
 }
 
 model PayrollRun {
@@ -72,15 +223,16 @@ model PayrollItem {
 }
 
 model MoneyMission {
-  id            String   @id
-  title         String
-  description   String
-  ruleType      String   @map("rule_type") // 'AUTO_SWEEP', 'SPEND_CAP', 'EMERGENCY_RESERVE', 'FX_TARGET'
-  conditionJson Json     @map("condition_json")
-  actionJson    Json     @map("action_json")
-  isActive      Boolean  @default(true) @map("is_active")
-  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt     DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+  id               String            @id
+  title            String
+  description      String
+  ruleType         String            @map("rule_type") // 'AUTO_SWEEP', 'SPEND_CAP', 'EMERGENCY_RESERVE', 'FX_TARGET'
+  conditionJson    Json              @map("condition_json")
+  actionJson       Json              @map("action_json")
+  isActive         Boolean           @default(true) @map("is_active")
+  createdAt        DateTime          @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt        DateTime          @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+  pendingApprovals PendingApproval[]
 
   @@map("money_missions")
 }
