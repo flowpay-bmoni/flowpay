@@ -1,4 +1,3 @@
-import { ethers } from 'ethers';
 import { bmoniClient } from '../../bmoni/client.js';
 import { getStablecoinForCurrency } from '../../core/currencies.js';
 import { Money, type SupportedCurrency } from '../../core/money.js';
@@ -50,13 +49,6 @@ export interface PayrollRunPreview {
 }
 
 export class PayrollOrchestrationService {
-  /**
-   * Official BMONI Anvil test signing key for sandbox proposal authorization
-   * Verified against https://bkey.mintlify.app/api-reference/signing.md
-   */
-  private static readonly SANDBOX_SIGNER_KEY =
-    '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80';
-
   /**
    * Default Sandbox Personas:
    * 1. Bunch Dillon (Nigeria 🇳🇬, NGN -> CNGN, BVN 99999999999) - $2,000 USD -> ₦3,100,000 NGN (1550 NGN/USD)
@@ -281,15 +273,8 @@ export class PayrollOrchestrationService {
               delayMs: 300,
             });
 
-            // 4. Call 4: Sign and submit signature
-            // Use client-provided on-device signature if passed, otherwise sign raw hash with Anvil key
-            let signature = signaturesMap?.[item.employeeId];
-            if (!signature && signPayload.hashToSign) {
-              // Sign raw hash (NO EIP-191 prefix per BMONI specs)
-              const signingKey = new ethers.SigningKey(this.SANDBOX_SIGNER_KEY);
-              signature = signingKey.sign(signPayload.hashToSign).serialized;
-            }
-
+            // 4. Call 4: Submit client on-device signature if passed
+            const signature = signaturesMap?.[item.employeeId];
             if (signature) {
               const signRes = await bmoniClient.submitProposalSignature({
                 userId: employerUserId,
@@ -411,7 +396,8 @@ export class PayrollOrchestrationService {
   static async retryProposal(
     employerUserId: string,
     proposalId: string,
-    employeeId?: string
+    employeeId?: string,
+    signature?: string
   ): Promise<{ success: boolean; item?: PayrollRunItem; message: string }> {
     try {
       // 1. Call approve to restart workflow (per BMONI docs)
@@ -424,23 +410,21 @@ export class PayrollOrchestrationService {
         console.warn(`[Payroll] Retry approve notice (offline/sandbox): ${approveErr.message || approveErr}`);
       }
 
-      // 2. Poll sign-payload & sign raw hash
+      // 2. Poll sign-payload & submit signature if provided
       let txHash = `0x7e81...retry_${Date.now().toString(16)}`;
       try {
-        const signPayload = await bmoniClient.pollProposalSignPayload({
+        await bmoniClient.pollProposalSignPayload({
           userId: employerUserId,
           proposalId,
           maxAttempts: 2,
           delayMs: 200,
         });
 
-        if (signPayload.hashToSign) {
-          const signingKey = new ethers.SigningKey(this.SANDBOX_SIGNER_KEY);
-          const sig = signingKey.sign(signPayload.hashToSign).serialized;
+        if (signature) {
           const signRes = await bmoniClient.submitProposalSignature({
             userId: employerUserId,
             proposalId,
-            signature: sig,
+            signature,
           });
           if (signRes.transactionHash) {
             txHash = signRes.transactionHash;

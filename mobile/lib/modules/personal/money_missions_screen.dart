@@ -277,13 +277,19 @@ class _MoneyMissionsScreenState extends State<MoneyMissionsScreen> {
                       const Text('Signing Enclave',
                           style: TextStyle(
                               fontSize: 11, color: BMoniColors.grey400)),
-                      Text('BMONI B-Key PIN Verified',
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: Text(
+                          'BMONI B-Key PIN Verified',
                           style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.bold,
                               color: isDark
                                   ? BMoniColors.grey100
-                                  : BMoniColors.grey900)),
+                                  : BMoniColors.grey900),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 6),
@@ -293,14 +299,18 @@ class _MoneyMissionsScreenState extends State<MoneyMissionsScreen> {
                       const Text('BMONI Reference',
                           style: TextStyle(
                               fontSize: 11, color: BMoniColors.grey400)),
-                      Text(
-                        txRef.length > 18
-                            ? '${txRef.substring(0, 16)}...'
-                            : txRef,
-                        style: const TextStyle(
-                          fontSize: 11,
-                          fontFamily: 'monospace',
-                          color: BMoniColors.brand300,
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: Text(
+                          txRef.length > 18
+                              ? '${txRef.substring(0, 16)}...'
+                              : txRef,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontFamily: 'monospace',
+                            color: BMoniColors.brand300,
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],
@@ -312,11 +322,17 @@ class _MoneyMissionsScreenState extends State<MoneyMissionsScreen> {
                       Text('Status',
                           style: TextStyle(
                               fontSize: 11, color: BMoniColors.grey400)),
-                      Text('ACTIVE • Monitored',
+                      SizedBox(width: 8),
+                      Flexible(
+                        child: Text(
+                          'ACTIVE • Monitored',
                           style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.bold,
-                              color: BMoniColors.success400)),
+                              color: BMoniColors.success400),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
                     ],
                   ),
                 ],
@@ -483,61 +499,66 @@ class _MoneyMissionsScreenState extends State<MoneyMissionsScreen> {
                       color: isDark ? BMoniColors.offbrand700 : BMoniColors.grey300,
                     ),
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            width: 7,
-                            height: 7,
-                            decoration: const BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: BMoniColors.success400,
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              width: 7,
+                              height: 7,
+                              decoration: const BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: BMoniColors.success400,
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            'Engine: Active',
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                              color: isDark ? BMoniColors.grey200 : BMoniColors.grey800,
+                            const SizedBox(width: 6),
+                            Text(
+                              'Engine: Active',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                                color: isDark ? BMoniColors.grey200 : BMoniColors.grey800,
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                      Row(
-                        children: [
-                          const Icon(Icons.shield_outlined,
-                              size: 13, color: BMoniColors.brand400),
-                          const SizedBox(width: 4),
-                          Text(
-                            'B-Key Guard',
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: isDark ? BMoniColors.grey300 : BMoniColors.grey700,
+                          ],
+                        ),
+                        const SizedBox(width: 16),
+                        Row(
+                          children: [
+                            const Icon(Icons.shield_outlined,
+                                size: 13, color: BMoniColors.brand400),
+                            const SizedBox(width: 4),
+                            Text(
+                              'B-Key Guard',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: isDark ? BMoniColors.grey300 : BMoniColors.grey700,
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                      Row(
-                        children: [
-                          const Icon(Icons.bolt,
-                              size: 13, color: BMoniColors.accent400),
-                          const SizedBox(width: 4),
-                          Text(
-                            'Deterministic',
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: isDark ? BMoniColors.grey300 : BMoniColors.grey700,
+                          ],
+                        ),
+                        const SizedBox(width: 16),
+                        Row(
+                          children: [
+                            const Icon(Icons.bolt,
+                                size: 13, color: BMoniColors.accent400),
+                            const SizedBox(width: 4),
+                            Text(
+                              'Deterministic',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: isDark ? BMoniColors.grey300 : BMoniColors.grey700,
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ],
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -580,6 +601,7 @@ class _MoneyMissionsScreenState extends State<MoneyMissionsScreen> {
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: const Row(
+                              mainAxisSize: MainAxisSize.min,
                               children: [
                                 Icon(Icons.terminal_rounded,
                                     size: 12, color: BMoniColors.brand400),
@@ -596,14 +618,20 @@ class _MoneyMissionsScreenState extends State<MoneyMissionsScreen> {
                               ],
                             ),
                           ),
-                          Text(
-                            'Your money. Your rules. AI executes.',
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w600,
-                              color: isDark
-                                  ? BMoniColors.grey400
-                                  : BMoniColors.grey600,
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Your money. Your rules. AI executes.',
+                              textAlign: TextAlign.end,
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w600,
+                                color: isDark
+                                    ? BMoniColors.grey400
+                                    : BMoniColors.grey600,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ],
@@ -638,15 +666,20 @@ class _MoneyMissionsScreenState extends State<MoneyMissionsScreen> {
 
                       // Submit Directive Button
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          Text(
-                            'Strictly PIN-authorized on BMONI',
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: isDark ? BMoniColors.grey400 : BMoniColors.grey600,
+                          Expanded(
+                            child: Text(
+                              'Strictly PIN-authorized on BMONI',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: isDark ? BMoniColors.grey400 : BMoniColors.grey600,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
+                          const SizedBox(width: 8),
                           BMoniButton(
                             text: isInterpreting
                                 ? 'Structuring Plan...'
@@ -906,12 +939,14 @@ class _MoneyMissionsScreenState extends State<MoneyMissionsScreen> {
           color: isCompleted ? BMoniColors.success400 : BMoniColors.grey500,
         ),
         const SizedBox(width: 8),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: isCompleted ? FontWeight.w600 : FontWeight.normal,
-            color: isCompleted ? BMoniColors.grey100 : BMoniColors.grey500,
+        Expanded(
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: isCompleted ? FontWeight.w600 : FontWeight.normal,
+              color: isCompleted ? BMoniColors.grey100 : BMoniColors.grey500,
+            ),
           ),
         ),
       ],

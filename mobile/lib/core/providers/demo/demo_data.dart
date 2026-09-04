@@ -87,26 +87,6 @@ class DemoData {
       cardId: 'card_demo_mxn_02',
       cardLast4: '4289',
     ),
-    EmployeeModel(
-      id: 'emp_liam_tremblay',
-      bmoniUserId: 'usr_bmoni_liam_cad',
-      firstName: 'Liam',
-      lastName: 'Tremblay',
-      email: 'liam.tremblay@example.ca',
-      phoneNumber: '+14165550192',
-      country: 'CA',
-      countryName: 'Canada',
-      targetCurrency: Currency.cad,
-      status: 'ACTIVE',
-      onboardingStatus: 'ONBOARDED',
-      walletStatus: 'PROVISIONED',
-      cardStatus: 'ACTIVE',
-      payrollAmount: Money.fromMajorString('2750.00', Currency.cad),
-      usdPayrollAmount: Money.fromMajorString('2000.00', Currency.usd),
-      walletAddress: '0x1C44...9F90',
-      cardId: 'card_demo_cad_03',
-      cardLast4: '9032',
-    ),
   ];
 
   static final List<VirtualCardModel> cards = [
@@ -226,35 +206,20 @@ class DemoData {
       railValidationMessage: 'MEXe Rail Active & Verified',
     );
 
-    final item3 = PayrollItemModel(
-      employeeId: 'emp_liam_tremblay',
-      employeeName: 'Liam Tremblay',
-      country: 'CA',
-      targetCurrency: Currency.cad,
-      destinationStablecoin: 'CADC',
-      targetAmount:
-          Money.fromMajorString('2750.00', Currency.cad), // CA$2,750 CAD
-      usdAmount: Money.fromMajorString('2000.00', Currency.usd), // $2,000
-      exchangeRate: 1.375,
-      status: 'PENDING',
-      isRailActive: true,
-      railValidationMessage: 'CADC Rail Active',
-    );
-
     return PayrollRunModel(
       runId: 'demo_run_preview',
       title: 'Global Engineering & Design Payroll',
-      totalUsd: Money.fromMajorString('6000.00', Currency.usd),
+      totalUsd: Money.fromMajorString('4000.00', Currency.usd),
       totalFeeUsd:
-          Money.fromMajorString('15.00', Currency.usd), // $15 vs $510 wire fee
-      totalSavedFeeUsd: Money.fromMajorString('495.00', Currency.usd),
+          Money.fromMajorString('10.00', Currency.usd), // $10 vs $340 wire fee
+      totalSavedFeeUsd: Money.fromMajorString('330.00', Currency.usd),
       savedPercentage: 97.0,
       employerBalanceUsd: Money.fromMajorString('24500.00', Currency.usd),
       isBalanceSufficient: true,
-      employeeCount: 3,
-      countries: ['NG', 'MX', 'CA'],
-      currencies: ['NGN', 'MXN', 'CAD'],
-      items: [item1, item2, item3],
+      employeeCount: 2,
+      countries: const ['NG', 'MX'],
+      currencies: const ['NGN', 'MXN'],
+      items: [item1, item2],
       status: 'PREVIEW',
       executedAt: DateTime.now(),
       isDemo: true,

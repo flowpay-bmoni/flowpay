@@ -1,0 +1,39 @@
+name: bmoni_embedded_sdk
+description: "Bmoni Embedded SDK for Flutter — Ethereum wallet provisioning and signing backed by Android Keystore / iOS Secure Enclave."
+version: 0.0.2
+homepage: https://github.com/bkey-inc/bmoni-embedded-flutter-sdk
+repository: https://github.com/bkey-inc/bmoni-embedded-flutter-sdk
+issue_tracker: https://github.com/bkey-inc/bmoni-embedded-flutter-sdk/issues
+topics:
+  - ethereum
+  - wallet
+  - signer
+  - web3
+  - secure-storage
+license: Apache-2.0
+
+environment:
+  sdk: ^3.9.0
+  flutter: '>=3.3.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  plugin_platform_interface: ^2.0.2
+  flutter_secure_storage: ^10.0.0
+  crypto: ^3.0.7
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: com.bmoni.embedded.sdk
+        pluginClass: BmoniEmbeddedSdkPlugin
+      ios:
+        pluginClass: BmoniEmbeddedSdkPlugin
+

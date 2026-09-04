@@ -1,10 +1,10 @@
 import 'dart:convert';
-import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import '../../core/auth/account_capabilities.dart';
 import '../../core/auth/auth_providers.dart';
+import '../../core/config/api_config.dart';
 import '../../core/design_system/buttons.dart';
 import '../../core/design_system/input_fields.dart';
 import '../../core/theme/colors.dart';
@@ -124,10 +124,7 @@ class _KycScreenState extends ConsumerState<KycScreen> {
 
       // 1. Notify FlowPay backend of KYC completion (with safe fallback)
       try {
-        final host = Platform.isAndroid
-            ? 'http://10.0.2.2:4000'
-            : 'http://localhost:4000';
-        final uri = Uri.parse('$host/api/auth/kyc');
+        final uri = Uri.parse('${ApiConfig.baseUrl}/api/auth/kyc');
         await http
             .post(
               uri,

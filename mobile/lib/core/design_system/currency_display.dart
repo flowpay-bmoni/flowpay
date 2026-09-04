@@ -89,29 +89,35 @@ class FlowPayCurrencyDisplay extends StatelessWidget {
           ),
         ),
         const SizedBox(width: FlowPaySpacing.md),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              name,
-              style: FlowPayTypography.bodyMd.copyWith(
-                fontWeight: FontWeight.w600,
-                color: isDark
-                    ? FlowPayColors.darkTextPrimary
-                    : FlowPayColors.lightTextPrimary,
-              ),
-            ),
-            if (tokenName != null)
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
               Text(
-                tokenName!,
-                style: FlowPayTypography.caption.copyWith(
+                name,
+                style: FlowPayTypography.bodyMd.copyWith(
+                  fontWeight: FontWeight.w600,
                   color: isDark
-                      ? FlowPayColors.darkTextTertiary
-                      : FlowPayColors.lightTextTertiary,
+                      ? FlowPayColors.darkTextPrimary
+                      : FlowPayColors.lightTextPrimary,
                 ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
-          ],
+              if (tokenName != null)
+                Text(
+                  tokenName!,
+                  style: FlowPayTypography.caption.copyWith(
+                    color: isDark
+                        ? FlowPayColors.darkTextTertiary
+                        : FlowPayColors.lightTextTertiary,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+            ],
+          ),
         ),
       ],
     );

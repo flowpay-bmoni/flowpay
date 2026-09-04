@@ -32,7 +32,7 @@ FlowPay is an intelligent financial operating layer built on top of BMONI infras
 | Layer | Technology | Status / Details |
 | :--- | :--- | :--- |
 | **Frontend (Mobile)** | Flutter (Dart), `bmoni_embedded_sdk: ^0.0.2`, `bkey_uikit: ^0.0.1`, `bmoni_embedded_wallets_cards: ^0.0.1`, Riverpod | Shared Foundation complete in `mobile/` |
-| **Backend / API** | Node.js (v20+), Express, TypeScript (ESM) | Complete modular backend in `backend/` |
+| **Backend / API** | Node.js (v20+), Express, TypeScript (ESM) | Complete modular backend in `backend/` — Live Deployed at `https://flowpay-k2wn.onrender.com` |
 | **Database** | Supabase PostgreSQL (`mxjbzexlnenooclmaawe`) via Prisma ORM (`@prisma/client`) & Supabase MCP | Tables, indexes, and RLS deployed to live Supabase project |
 | **Infrastructure** | BMONI Embedded REST Sandbox (`https://embedded-dev.bmoni.com`), Origin-only base URL | Integrated with client & raw HMAC webhooks |
 | **BMONI Docs & Specs** | [bkey.mintlify.app](https://bkey.mintlify.app/) (LLM Index: [/llms.txt](https://bkey.mintlify.app/llms.txt)) | Official docs & API specs; prompt user for any required keys |
@@ -59,6 +59,7 @@ FlowPay is an intelligent financial operating layer built on top of BMONI infras
   * Configured `pubspec.yaml` with BMONI Flutter ecosystem (`bmoni_embedded_sdk`, `bkey_uikit`, `bmoni_embedded_wallets_cards`, `crypto`).
   * Configured native Android (`mobile/android/`) and iOS (`mobile/ios/`) platform project trees with Gradle wrapper and build configurations.
   * Central Money abstraction (`lib/core/money/money.dart`).
+  * **Central API Configuration (`lib/core/config/api_config.dart`)**: Routes all mobile authentication, KYC, capabilities, and proxy calls directly to live Render backend (`https://flowpay-k2wn.onrender.com`) with `--dart-define=FLOWPAY_API_URL` override support.
   * Financial safety state models & signing coordinator (`lib/core/safety/`).
   * **BMONI Embedded SDK facade** (`lib/core/bmoni_sdk/bmoni_sdk_service.dart`) — wraps `bmoni_embedded_sdk: 0.0.2` with test-env fallback, salted PBKDF2 PIN digest, and 200ms native-platform timeout guards.
   * Provider abstraction interfaces: `WalletRepository`, `TransferRepository`, `CardRepository`, `EmployeeRepository`, `PayrollRepository`.
@@ -355,6 +356,13 @@ FlowPay is an intelligent financial operating layer built on top of BMONI infras
     * **Screen Responsive Layouts**: Enhanced `SetPinScreen` with `LayoutBuilder`, `SingleChildScrollView`, `ConstrainedBox(minHeight)`, and `IntrinsicHeight` to ensure zero overflow on small height screens (<600px). Wrapped AppBar title in `personal_shell.dart` and `business_shell.dart` in `FittedBox(fit: BoxFit.scaleDown)` to prevent narrow (<360dp) overflow.
     * **WCAG Accessibility**: Enforced minimum 48x48dp touch targets on `FlowPayIconButton` and added `Semantics(button: true, label: ...)` across icon buttons and numeric keypad digit keys.
     * **Verification**: 105/105 Flutter tests passing (100%), 69/69 backend tests passing (100%), 0 Dart analyzer warnings or errors.
+  * **Final Hackathon QA Pass & Presentation Readiness**:
+  * **Competition Pitch Deck Deliverable (`deck/FlowPay_Pitch_Deck.pdf`)**:
+    * **12 Competition-Grade 16:9 Slides**: Created full presentation artifact adhering to BMONI x Linear dark obsidian design aesthetic (`deck/FlowPay_Pitch_Deck.pdf` and editable source `deck/index.html`).
+    * **100% Truth & Zero Invented Claims**: Built directly from verified FlowPay capabilities, BMONI embedded docs, and working test personas (Bunch Dillon 🇳🇬, Samson Jabo 🇲🇽, $4,000 USD payroll, $2,000 Money Mission).
+    * **Authentic App Screen Embeds**: Features real high-resolution screenshots from running Flutter emulator: Live Personal Account, Money Missions screen, B-Key on-device PIN signing sheet, Balance-aware Send Review modal, and 4-Stage Payroll execution timeline.
+    * **Judge Alignment**: Explicitly addresses Responsible AI (advisory intent vs deterministic policy guard vs on-device signing), BMONI platform depth (26 endpoints, server-only API keys, secure enclave), and financial inclusion impact (97% fee savings).
+    * **Inspection & Quality**: Zero Skia raster bounding-box artifacts, crisp vector typography, tabular numerals, and verified 12-page 1152x648pt output with PNG slide previews at `deck/preview_pages/`.
 
 ---
 

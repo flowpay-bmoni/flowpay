@@ -98,9 +98,7 @@ class _SetPinScreenState extends ConsumerState<SetPinScreen> {
       await BmoniSdkService.initWallet();
 
       // 2. Set 6-digit PIN in BMONI SDK (salted PBKDF2 digest in Secure Storage)
-      if (!await BmoniSdkService.hasPin()) {
-        await BmoniSdkService.setPin(_initialPin);
-      }
+      await BmoniSdkService.setPin(_initialPin);
 
       // 3. Store fallback PIN and establish active user session
       final storage = ref.read(secureStorageServiceProvider);

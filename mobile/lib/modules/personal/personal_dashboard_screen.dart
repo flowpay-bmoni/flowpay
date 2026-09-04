@@ -168,58 +168,65 @@ class _PersonalDashboardScreenState extends State<PersonalDashboardScreen> {
             children: [
               // 1. Header Subtitle & Status Row
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Text(
-                            'Personal Account',
-                            style: TextStyle(
-                              fontSize: 17,
-                              fontWeight: FontWeight.bold,
-                              color: isDark
-                                  ? BMoniColors.grey50
-                                  : BMoniColors.grey950,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          // Clear Sandbox / Demo Indicator
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: BMoniColors.accent400.withAlpha(30),
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
-                                  color: BMoniColors.accent400.withAlpha(70)),
-                            ),
-                            child: Text(
-                              widget.appState.isDemo
-                                  ? 'Sandbox Demo'
-                                  : 'BMONI Live Testnet',
-                              style: const TextStyle(
-                                fontSize: 10,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Wrap(
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          spacing: 8,
+                          runSpacing: 4,
+                          children: [
+                            Text(
+                              'Personal Account',
+                              style: TextStyle(
+                                fontSize: 17,
                                 fontWeight: FontWeight.bold,
-                                color: BMoniColors.accent400,
+                                color: isDark
+                                    ? BMoniColors.grey50
+                                    : BMoniColors.grey950,
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 3),
-                      const Text(
-                        'Your money. Your rules. AI executes.',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: BMoniColors.brand400,
+                            // Clear Sandbox / Demo Indicator
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: BMoniColors.accent400.withAlpha(30),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                    color: BMoniColors.accent400.withAlpha(70)),
+                              ),
+                              child: Text(
+                                widget.appState.isDemo
+                                    ? 'Sandbox Demo'
+                                    : 'BMONI Live Testnet',
+                                style: const TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: BMoniColors.accent400,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 3),
+                        const Text(
+                          'Your money. Your rules. AI executes.',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: BMoniColors.brand400,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
                   ),
+                  const SizedBox(width: 8),
                   InkWell(
                     onTap: () {
                       Navigator.push(
@@ -231,7 +238,7 @@ class _PersonalDashboardScreenState extends State<PersonalDashboardScreen> {
                     borderRadius: BorderRadius.circular(12),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
+                          horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
                         color: BMoniColors.brand500.withAlpha(30),
                         borderRadius: BorderRadius.circular(12),
@@ -245,7 +252,7 @@ class _PersonalDashboardScreenState extends State<PersonalDashboardScreen> {
                               size: 12, color: BMoniColors.brand400),
                           SizedBox(width: 4),
                           Text(
-                            'Self-Custody (B-Key)',
+                            'B-Key Vault',
                             style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w600,
@@ -262,7 +269,7 @@ class _PersonalDashboardScreenState extends State<PersonalDashboardScreen> {
 
               // 2. Premium Portfolio Section (BMoniWalletCard)
               BMoniWalletCard(
-                height: 200,
+                height: 240,
                 background: const BMoniWalletCardBackground.gradient(
                   LinearGradient(
                     colors: [
@@ -852,13 +859,15 @@ class _WalletSummaryCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          FlowPayCurrencyDisplay(
-            code: wallet.currency.code,
-            symbol: wallet.currency.symbol,
-            name: wallet.currency.name,
-            tokenName: 'BMONI ${wallet.stablecoinToken}',
+          Expanded(
+            child: FlowPayCurrencyDisplay(
+              code: wallet.currency.code,
+              symbol: wallet.currency.symbol,
+              name: wallet.currency.name,
+              tokenName: 'BMONI ${wallet.stablecoinToken}',
+            ),
           ),
-          const Spacer(),
+          const SizedBox(width: 8),
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [

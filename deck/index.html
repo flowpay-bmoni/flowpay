@@ -1,0 +1,1376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FlowPay — Hackathon Pitch Deck</title>
+<style>
+  @page {
+    size: 16in 9in;
+    margin: 0;
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    background-color: #06080D;
+    color: #F8FAFC;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Subtle background styling */
+  .slide {
+    width: 16in;
+    height: 9in;
+    page-break-after: always;
+    break-after: page;
+    position: relative;
+    overflow: hidden;
+    background: radial-gradient(circle at 85% 15%, rgba(255, 42, 133, 0.07) 0%, #080A10 55%);
+    display: flex;
+    flex-direction: column;
+    padding: 56px 80px 44px 80px;
+  }
+
+  .slide-alt {
+    background: radial-gradient(circle at 85% 15%, rgba(56, 189, 248, 0.07) 0%, #080A10 55%);
+  }
+
+  .slide-emerald {
+    background: radial-gradient(circle at 85% 15%, rgba(16, 185, 129, 0.07) 0%, #080A10 55%);
+  }
+
+  /* Header bar */
+  .slide-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    position: relative;
+    z-index: 10;
+    margin-bottom: 32px;
+  }
+
+  .header-left {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .category-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #FF2A85;
+  }
+
+  .category-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background-color: #FF2A85;
+  }
+
+  .slide-title {
+    font-size: 40px;
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.025em;
+    color: #FFFFFF;
+    max-width: 1050px;
+  }
+
+  .slide-subtitle {
+    font-size: 18px;
+    font-weight: 400;
+    line-height: 1.45;
+    color: #94A3B8;
+    max-width: 1000px;
+    margin-top: 4px;
+  }
+
+  .slide-counter {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 6px 14px;
+    border-radius: 100px;
+    font-family: "SF Mono", "JetBrains Mono", Menlo, monospace;
+    font-size: 13px;
+    font-weight: 600;
+    color: #64748B;
+    letter-spacing: 0.05em;
+  }
+
+  .slide-counter span.active {
+    color: #F8FAFC;
+  }
+
+  /* Content area */
+  .slide-body {
+    flex: 1;
+    display: flex;
+    position: relative;
+    z-index: 10;
+    gap: 40px;
+    align-items: stretch;
+  }
+
+  /* Footer bar */
+  .slide-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    z-index: 10;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    font-size: 13px;
+    color: #64748B;
+  }
+
+  .footer-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+    color: #94A3B8;
+  }
+
+  .footer-brand svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  /* Cards and surfaces */
+  .glass-card {
+    background: #0E1320;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    padding: 26px;
+  }
+
+  .glass-card-highlight {
+    background: #131828;
+    border: 1.5px solid rgba(255, 42, 133, 0.4);
+    border-radius: 20px;
+    padding: 26px;
+  }
+
+  .tabular {
+    font-variant-numeric: tabular-nums;
+    font-family: "SF Mono", "JetBrains Mono", Menlo, monospace;
+  }
+
+  /* Phone frame mockup */
+  .phone-frame {
+    width: 270px;
+    height: 535px;
+    border-radius: 36px;
+    background: #020408;
+    border: 3px solid #2B3344;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+  }
+
+  .phone-notch {
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 18px;
+    background: #020408;
+    border-radius: 10px;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .notch-camera {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #111827;
+    border: 1px solid #1F2937;
+  }
+
+  .notch-sensor {
+    width: 20px;
+    height: 3px;
+    border-radius: 2px;
+    background: #111827;
+  }
+
+  .phone-screen {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top center;
+    border-radius: 32px;
+  }
+
+  /* Grid Layouts */
+  .grid-2col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+    width: 100%;
+  }
+
+  .grid-3col {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 24px;
+    width: 100%;
+  }
+
+  .grid-4col {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 20px;
+    width: 100%;
+  }
+
+  /* Badges & Pills */
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 100px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .pill-pink {
+    background: rgba(255, 42, 133, 0.15);
+    color: #FF2A85;
+    border: 1px solid rgba(255, 42, 133, 0.3);
+  }
+
+  .pill-cyan {
+    background: rgba(56, 189, 248, 0.15);
+    color: #38BDF8;
+    border: 1px solid rgba(56, 189, 248, 0.3);
+  }
+
+  .pill-emerald {
+    background: rgba(16, 185, 129, 0.15);
+    color: #10B981;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+  }
+
+  .pill-amber {
+    background: rgba(245, 158, 11, 0.15);
+    color: #F59E0B;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+  }
+
+  /* Gradient Text */
+  .gradient-text-brand {
+    background: linear-gradient(135deg, #FFFFFF 0%, #FF2A85 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .gradient-text-cyan {
+    background: linear-gradient(135deg, #FFFFFF 0%, #38BDF8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .gradient-text-gold {
+    background: linear-gradient(135deg, #FFFFFF 0%, #F59E0B 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+</style>
+</head>
+<body>
+
+  <!-- ========================================== -->
+  <!-- SLIDE 1: COVER                             -->
+  <!-- ========================================== -->
+  <div class="slide" id="slide-1" style="justify-content: space-between; padding: 72px 96px 56px 96px; background: radial-gradient(circle at 80% 20%, rgba(255, 42, 133, 0.18) 0%, rgba(8, 10, 16, 0.95) 60%), #080A10;">
+
+    <!-- Top Badge Row -->
+    <div style="display: flex; justify-content: space-between; align-items: center; position: relative; z-index: 10;">
+      <div style="display: flex; align-items: center; gap: 14px;">
+        <svg width="42" height="42" viewBox="0 0 42 42" fill="none">
+          <rect width="42" height="42" rx="12" fill="#FF2A85" fill-opacity="0.15" stroke="#FF2A85" stroke-width="1.5"/>
+          <path d="M12 21C12 16.0294 16.0294 12 21 12H30V18H21C19.3431 18 18 19.3431 18 21C18 22.6569 19.3431 24 21 24H27V30H21C16.0294 30 12 25.9706 12 21Z" fill="#FF2A85"/>
+          <circle cx="28" cy="15" r="3" fill="#38BDF8"/>
+        </svg>
+        <span style="font-size: 26px; font-weight: 800; letter-spacing: -0.03em; color: #FFFFFF;">FlowPay</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <span class="pill pill-pink" style="font-size: 13px; padding: 6px 16px;">BMONI FINTECH HACKATHON 2026</span>
+        <span class="pill pill-cyan" style="font-size: 13px; padding: 6px 16px;">LIVE DEMO DECK</span>
+      </div>
+    </div>
+
+    <!-- Center Hero Typography -->
+    <div style="position: relative; z-index: 10; max-width: 1100px; margin-top: 10px;">
+      <div style="display: inline-block; margin-bottom: 16px;">
+        <span style="font-size: 15px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: #38BDF8;">Autonomous Financial Layer</span>
+      </div>
+      <h1 style="font-size: 72px; font-weight: 800; line-height: 1.05; letter-spacing: -0.04em; color: #FFFFFF; margin-bottom: 24px;">
+        Your money. Your rules.<br>
+        <span style="background: linear-gradient(135deg, #FF2A85 0%, #FF7300 50%, #FFB800 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">AI executes.</span>
+      </h1>
+      <p style="font-size: 24px; font-weight: 400; line-height: 1.45; color: #94A3B8; max-width: 820px;">
+        The AI financial operator for African freelancers and global micro-businesses receiving international income.
+      </p>
+    </div>
+
+    <!-- Bottom Narrative Workflow Visual -->
+    <div style="position: relative; z-index: 10; background: rgba(18, 24, 38, 0.7); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 22px 32px; display: flex; align-items: center; justify-content: space-between; backdrop-filter: blur(10px);">
+      <div style="display: flex; align-items: center; gap: 14px;">
+        <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.3); display: flex; align-items: center; justify-content: center; font-size: 20px;">🌍</div>
+        <div>
+          <div style="font-size: 12px; color: #64748B; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Source</div>
+          <div style="font-size: 15px; font-weight: 700; color: #F8FAFC;">African Freelancer / Business</div>
+        </div>
+      </div>
+      <div style="color: #475569; font-size: 20px;">→</div>
+      <div style="display: flex; align-items: center; gap: 14px;">
+        <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.3); display: flex; align-items: center; justify-content: center; font-size: 20px;">💵</div>
+        <div>
+          <div style="font-size: 12px; color: #64748B; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Inflow</div>
+          <div style="font-size: 15px; font-weight: 700; color: #F8FAFC;">Global Income (USD / EUR)</div>
+        </div>
+      </div>
+      <div style="color: #475569; font-size: 20px;">→</div>
+      <div style="display: flex; align-items: center; gap: 14px;">
+        <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(255, 42, 133, 0.15); border: 1px solid rgba(255, 42, 133, 0.3); display: flex; align-items: center; justify-content: center; font-size: 20px;">⚡</div>
+        <div>
+          <div style="font-size: 12px; color: #FF2A85; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">FlowPay AI Intent</div>
+          <div style="font-size: 15px; font-weight: 700; color: #F8FAFC;">Natural Language Allocation</div>
+        </div>
+      </div>
+      <div style="color: #475569; font-size: 20px;">→</div>
+      <div style="display: flex; align-items: center; gap: 14px;">
+        <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); display: flex; align-items: center; justify-content: center; font-size: 20px;">🛡️</div>
+        <div>
+          <div style="font-size: 12px; color: #10B981; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Execution</div>
+          <div style="font-size: 15px; font-weight: 700; color: #F8FAFC;">BMONI Smart Wallet Rails</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- SLIDE 2: THE PROBLEM                       -->
+  <!-- ========================================== -->
+  <div class="slide" id="slide-2">
+    <div class="slide-header">
+      <div class="header-left">
+        <div class="category-badge"><span class="category-dot"></span> The Problem</div>
+        <h2 class="slide-title">Getting paid globally shouldn't mean managing money manually.</h2>
+        <p class="slide-subtitle">African freelancers and micro-businesses face severe friction every time cross-border income arrives.</p>
+      </div>
+      <div class="slide-counter"><span class="active">02</span> / 12</div>
+    </div>
+
+    <div class="slide-body" style="flex-direction: column; gap: 24px;">
+      <!-- 4 Problem Cards -->
+      <div class="grid-4col" style="flex: 1;">
+        <!-- Card 1 -->
+        <div class="glass-card" style="display: flex; flex-direction: column; justify-content: space-between;">
+          <div>
+            <div style="width: 48px; height: 48px; border-radius: 14px; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.3); display: flex; align-items: center; justify-content: center; font-size: 22px; margin-bottom: 18px;">🔀</div>
+            <h3 style="font-size: 20px; font-weight: 700; color: #F8FAFC; margin-bottom: 12px; line-height: 1.25;">Currency<br>Fragmentation</h3>
+            <p style="font-size: 14px; line-height: 1.55; color: #94A3B8;">Income lands in USD, EUR, or GBP, while living and operational expenses are in NGN, KES, or MXN. Users juggle 4–6 disconnected apps just to move funds.</p>
+          </div>
+          <div class="pill pill-amber" style="align-self: flex-start;">Disjointed Wallets</div>
+        </div>
+
+        <!-- Card 2 -->
+        <div class="glass-card" style="display: flex; flex-direction: column; justify-content: space-between;">
+          <div>
+            <div style="width: 48px; height: 48px; border-radius: 14px; background: rgba(255, 42, 133, 0.15); border: 1px solid rgba(255, 42, 133, 0.3); display: flex; align-items: center; justify-content: center; font-size: 22px; margin-bottom: 18px;">🧮</div>
+            <h3 style="font-size: 20px; font-weight: 700; color: #F8FAFC; margin-bottom: 12px; line-height: 1.25;">Manual Allocation<br>Anxiety</h3>
+            <p style="font-size: 14px; line-height: 1.55; color: #94A3B8;">Every payment requires mental math: "How much to save? How much for tax? How much to convert for groceries?" Users calculate and split manually every single invoice.</p>
+          </div>
+          <div class="pill pill-pink" style="align-self: flex-start;">Constant Decision Fatigue</div>
+        </div>
+
+        <!-- Card 3 -->
+        <div class="glass-card" style="display: flex; flex-direction: column; justify-content: space-between;">
+          <div>
+            <div style="width: 48px; height: 48px; border-radius: 14px; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); display: flex; align-items: center; justify-content: center; font-size: 22px; margin-bottom: 18px;">💸</div>
+            <h3 style="font-size: 20px; font-weight: 700; color: #F8FAFC; margin-bottom: 12px; line-height: 1.25;">Predatory Fees &<br>Hidden Spreads</h3>
+            <p style="font-size: 14px; line-height: 1.55; color: #94A3B8;">Traditional SWIFT wires charge $40–$60 per wire plus 4–7% in hidden FX markups. Remote teams lose hundreds of dollars every payroll cycle to intermediary banks.</p>
+          </div>
+          <div class="pill" style="background: rgba(239, 68, 68, 0.15); color: #EF4444; border: 1px solid rgba(239, 68, 68, 0.3); align-self: flex-start;">Up to 8% Lost in Transit</div>
+        </div>
+
+        <!-- Card 4 -->
+        <div class="glass-card" style="display: flex; flex-direction: column; justify-content: space-between;">
+          <div>
+            <div style="width: 48px; height: 48px; border-radius: 14px; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.3); display: flex; align-items: center; justify-content: center; font-size: 22px; margin-bottom: 18px;">🤖</div>
+            <h3 style="font-size: 20px; font-weight: 700; color: #F8FAFC; margin-bottom: 12px; line-height: 1.25;">Tools Move Money,<br>Not Intent</h3>
+            <p style="font-size: 14px; line-height: 1.55; color: #94A3B8;">Existing wallets are passive databases. They execute transactions when clicked, but have zero comprehension of the user's underlying financial intent, rules, or goals.</p>
+          </div>
+          <div class="pill pill-cyan" style="align-self: flex-start;">Passive Infrastructure</div>
+        </div>
+      </div>
+
+      <!-- Bottom Punchline Statement -->
+      <div style="background: linear-gradient(90deg, rgba(255, 42, 133, 0.12) 0%, rgba(56, 189, 248, 0.12) 100%); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 16px; padding: 20px 32px; display: flex; align-items: center; justify-content: space-between;">
+        <div style="display: flex; align-items: center; gap: 16px;">
+          <span style="font-size: 26px;">💡</span>
+          <span style="font-size: 20px; font-weight: 700; color: #FFFFFF;">
+            People don't need another wallet. They need a <span style="color: #FF2A85;">financial operator</span>.
+          </span>
+        </div>
+        <div style="font-size: 14px; color: #94A3B8; font-weight: 500;">
+          An autonomous system that acts on intent with deterministic safety.
+        </div>
+      </div>
+    </div>
+
+    <div class="slide-footer">
+      <div class="footer-brand">FlowPay — The AI Financial Operator</div>
+      <div>Source: Emerging Market Cross-Border Freelancer Economics</div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- SLIDE 3: THE SOLUTION                      -->
+  <!-- ========================================== -->
+  <div class="slide" id="slide-3">
+    <div class="slide-header">
+      <div class="header-left">
+        <div class="category-badge" style="color: #38BDF8;"><span class="category-dot" style="background-color: #38BDF8; box-shadow: 0 0 10px #38BDF8;"></span> The Solution</div>
+        <h2 class="slide-title">Meet FlowPay.</h2>
+        <p class="slide-subtitle">FlowPay turns natural-language financial instructions into structured, reviewable, and executable financial actions.</p>
+      </div>
+      <div class="slide-counter"><span class="active">03</span> / 12</div>
+    </div>
+
+    <div class="slide-body" style="flex-direction: column; gap: 28px;">
+      <!-- 3 Core Pillars -->
+      <div class="grid-3col" style="flex: 1;">
+        <!-- Pillar 1 -->
+        <div class="glass-card" style="border-top: 3px solid #38BDF8; display: flex; flex-direction: column; justify-content: space-between;">
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+              <span class="pill pill-cyan">THE REASONING ENGINE</span>
+              <span style="font-size: 24px;">🧠</span>
+            </div>
+            <h3 style="font-size: 24px; font-weight: 800; color: #FFFFFF; margin-bottom: 14px;">AI = Financial Intent</h3>
+            <p style="font-size: 15px; line-height: 1.6; color: #94A3B8; margin-bottom: 16px;">
+              Understands natural language commands (e.g. "Keep 30% in USD, convert 50% to Naira, reserve 20% for tax").
+            </p>
+            <ul style="list-style: none; font-size: 13px; color: #CBD5E1; display: flex; flex-direction: column; gap: 8px;">
+              <li style="display: flex; align-items: center; gap: 8px;"><span style="color: #38BDF8;">✓</span> Structured JSON intent extraction</li>
+              <li style="display: flex; align-items: center; gap: 8px;"><span style="color: #38BDF8;">✓</span> Zero access to private keys or custody</li>
+              <li style="display: flex; align-items: center; gap: 8px;"><span style="color: #38BDF8;">✓</span> Strictly advisory: AI cannot move funds</li>
+            </ul>
+          </div>
+          <div style="font-size: 12px; color: #64748B; padding-top: 14px; border-top: 1px solid rgba(255, 255, 255, 0.06);">
+            Intent Layer • Gemini 2.5 Flash
+          </div>
+        </div>
+
+        <!-- Pillar 2 -->
+        <div class="glass-card" style="border-top: 3px solid #10B981; display: flex; flex-direction: column; justify-content: space-between;">
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+              <span class="pill pill-emerald">EXECUTION RAILS</span>
+              <span style="font-size: 24px;">🛡️</span>
+            </div>
+            <h3 style="font-size: 24px; font-weight: 800; color: #FFFFFF; margin-bottom: 14px;">BMONI = Infrastructure</h3>
+            <p style="font-size: 15px; line-height: 1.6; color: #94A3B8; margin-bottom: 16px;">
+              Powered by official BMONI Embedded SDKs and smart wallet infrastructure across emerging market payment rails.
+            </p>
+            <ul style="list-style: none; font-size: 13px; color: #CBD5E1; display: flex; flex-direction: column; gap: 8px;">
+              <li style="display: flex; align-items: center; gap: 8px;"><span style="color: #10B981;">✓</span> ERC-4337 smart wallets & stablecoins (CNGN, MEXe)</li>
+              <li style="display: flex; align-items: center; gap: 8px;"><span style="color: #10B981;">✓</span> Virtual employee cards on BMONI rails</li>
+              <li style="display: flex; align-items: center; gap: 8px;"><span style="color: #10B981;">✓</span> Hardware enclave security & B-Key signing</li>
+            </ul>
+          </div>
+          <div style="font-size: 12px; color: #64748B; padding-top: 14px; border-top: 1px solid rgba(255, 255, 255, 0.06);">
+            Infrastructure Layer • BMONI Platform
+          </div>
+        </div>
+
+        <!-- Pillar 3 -->
+        <div class="glass-card-highlight" style="border-top: 3px solid #FF2A85; display: flex; flex-direction: column; justify-content: space-between;">
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+              <span class="pill pill-pink">ABSOLUTE CONTROL</span>
+              <span style="font-size: 24px;">👤</span>
+            </div>
+            <h3 style="font-size: 24px; font-weight: 800; color: #FFFFFF; margin-bottom: 14px;">User = Final Authority</h3>
+            <p style="font-size: 15px; line-height: 1.6; color: #94A3B8; margin-bottom: 16px;">
+              Every operation requires human preview, transparent cost disclosure, and on-device 6-digit PIN hardware authorization.
+            </p>
+            <ul style="list-style: none; font-size: 13px; color: #CBD5E1; display: flex; flex-direction: column; gap: 8px;">
+              <li style="display: flex; align-items: center; gap: 8px;"><span style="color: #FF2A85;">✓</span> "Nothing moves until you approve" guarantee</li>
+              <li style="display: flex; align-items: center; gap: 8px;"><span style="color: #FF2A85;">✓</span> On-device hardware PIN signature required</li>
+              <li style="display: flex; align-items: center; gap: 8px;"><span style="color: #FF2A85;">✓</span> Full immutable activity audit log</li>
+            </ul>
+          </div>
+          <div style="font-size: 12px; color: #FF2A85; font-weight: 600; padding-top: 14px; border-top: 1px solid rgba(255, 42, 133, 0.2);">
+            Governance Layer • User Sovereign
+          </div>
+        </div>
+      </div>
+
+      <!-- Linear Invariant Flow Banner -->
+      <div class="glass-card" style="padding: 16px 28px; display: flex; align-items: center; justify-content: space-between;">
+        <div style="font-size: 13px; font-weight: 700; color: #94A3B8; letter-spacing: 0.08em; text-transform: uppercase;">Invariant Pipeline:</div>
+        <div style="display: flex; align-items: center; gap: 12px; font-size: 13px; font-weight: 600;">
+          <span class="pill pill-pink">1. Tell FlowPay</span>
+          <span style="color: #475569;">→</span>
+          <span class="pill pill-cyan">2. Understand (AI)</span>
+          <span style="color: #475569;">→</span>
+          <span class="pill pill-amber">3. Validate (Policy)</span>
+          <span style="color: #475569;">→</span>
+          <span class="pill" style="background: rgba(168, 85, 247, 0.15); color: #C084FC; border: 1px solid rgba(168, 85, 247, 0.3);">4. Review (User)</span>
+          <span style="color: #475569;">→</span>
+          <span class="pill pill-emerald">5. Approve & Sign (B-Key)</span>
+          <span style="color: #475569;">→</span>
+          <span class="pill" style="background: #FFFFFF; color: #080A10;">6. Execute (BMONI)</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide-footer">
+      <div class="footer-brand">FlowPay Architecture</div>
+      <div>AI Proposes • User Approves • BMONI Executes</div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- SLIDE 4: HERO FEATURE: MONEY MISSIONS      -->
+  <!-- ========================================== -->
+  <div class="slide" id="slide-4">
+    <div class="slide-header">
+      <div class="header-left">
+        <div class="category-badge"><span class="category-dot"></span> Hero Feature</div>
+        <h2 class="slide-title">Tell your money what to do.</h2>
+        <p class="slide-subtitle">Natural language conversational automation that turns high-level intent into deterministic financial allocations.</p>
+      </div>
+      <div class="slide-counter"><span class="active">04</span> / 12</div>
+    </div>
+
+    <div class="slide-body" style="align-items: center;">
+      <!-- Left Column: Intent to Execution Walkthrough -->
+      <div style="flex: 1.2; display: flex; flex-direction: column; gap: 20px;">
+        <!-- Natural Language Prompt Box -->
+        <div class="glass-card-highlight" style="padding: 22px 26px;">
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+            <span style="font-size: 16px;">💬</span>
+            <span style="font-size: 12px; font-weight: 700; color: #FF2A85; letter-spacing: 0.1em; text-transform: uppercase;">User Natural Language Directive</span>
+          </div>
+          <p style="font-size: 18px; font-weight: 500; color: #FFFFFF; line-height: 1.45; font-style: italic;">
+            "Whenever I receive money, keep 30% in USD, convert 50% to Naira for expenses, and reserve 20% for tax."
+          </p>
+        </div>
+
+        <!-- Structured Plan Display ($2,000 received) -->
+        <div class="glass-card" style="padding: 22px 26px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <div>
+              <div style="font-size: 12px; color: #64748B; font-weight: 600; text-transform: uppercase;">Payment Trigger Event</div>
+              <div style="font-size: 22px; font-weight: 800; color: #FFFFFF;" class="tabular">$2,000.00 USD Received</div>
+            </div>
+            <span class="pill pill-emerald">Validated 100% Split</span>
+          </div>
+
+          <!-- Allocation Rows -->
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+            <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 12px; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center;">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 18px;">💵</span>
+                <div>
+                  <div style="font-size: 14px; font-weight: 700; color: #FFFFFF;">USD Reserve (30%)</div>
+                  <div style="font-size: 12px; color: #94A3B8;">Self-Custody USDB Smart Wallet</div>
+                </div>
+              </div>
+              <div style="font-size: 16px; font-weight: 800; color: #38BDF8;" class="tabular">$600.00</div>
+            </div>
+
+            <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 12px; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center;">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 18px;">🇳🇬</span>
+                <div>
+                  <div style="font-size: 14px; font-weight: 700; color: #FFFFFF;">NGN Living Expenses (50%)</div>
+                  <div style="font-size: 12px; color: #94A3B8;">Converted to CNGN @ 1,550 NGN/USD</div>
+                </div>
+              </div>
+              <div style="font-size: 16px; font-weight: 800; color: #10B981;" class="tabular">₦1,550,000.00</div>
+            </div>
+
+            <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 12px; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center;">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 18px;">🏛️</span>
+                <div>
+                  <div style="font-size: 14px; font-weight: 700; color: #FFFFFF;">Tax Vault Reserve (20%)</div>
+                  <div style="font-size: 12px; color: #94A3B8;">Protected Sub-Wallet Buffer</div>
+                </div>
+              </div>
+              <div style="font-size: 16px; font-weight: 800; color: #F59E0B;" class="tabular">$400.00</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Security Invariant Banner -->
+        <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 14px; padding: 12px 20px; display: flex; align-items: center; gap: 12px;">
+          <span style="font-size: 20px;">🛡️</span>
+          <span style="font-size: 14px; font-weight: 600; color: #6EE7B7;">
+            No money moves without explicit user approval. All transfers require on-device B-Key hardware PIN authorization.
+          </span>
+        </div>
+      </div>
+
+      <!-- Right Column: Phone Mockup with Real App Screenshot -->
+      <div style="flex: 0.8; display: flex; justify-content: center; align-items: center;">
+        <div class="phone-frame">
+          <div class="phone-notch">
+            <div class="notch-sensor"></div>
+            <div class="notch-camera"></div>
+          </div>
+          <img src="assets/app_money_missions.png" class="phone-screen" alt="FlowPay Money Missions Screen">
+        </div>
+      </div>
+    </div>
+
+    <div class="slide-footer">
+      <div class="footer-brand">FlowPay Money Missions</div>
+      <div>Real-Time Deterministic Allocation Engine</div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- SLIDE 5: RESPONSIBLE AI                    -->
+  <!-- ========================================== -->
+  <div class="slide" id="slide-5">
+    <div class="slide-header">
+      <div class="header-left">
+        <div class="category-badge" style="color: #38BDF8;"><span class="category-dot" style="background-color: #38BDF8; box-shadow: 0 0 10px #38BDF8;"></span> Safety & Governance</div>
+        <h2 class="slide-title">AI proposes. Users stay in control.</h2>
+        <p class="slide-subtitle">Judges evaluate responsible AI. Here is our non-negotiable security pipeline: AI is advisory; execution is human-authorized and hardware-signed.</p>
+      </div>
+      <div class="slide-counter"><span class="active">05</span> / 12</div>
+    </div>
+
+    <div class="slide-body" style="flex-direction: column; gap: 24px;">
+      <!-- The Invariant Pipeline Horizontal Chain -->
+      <div class="glass-card" style="padding: 24px 28px;">
+        <div style="font-size: 12px; font-weight: 700; color: #38BDF8; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 16px;">End-to-End Cryptographic Security Boundary</div>
+        
+        <div style="display: flex; align-items: center; justify-content: space-between; position: relative;">
+          <!-- Node 1 -->
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; width: 110px;">
+            <div style="width: 44px; height: 44px; border-radius: 50%; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.15); display: flex; align-items: center; justify-content: center; font-size: 18px;">💬</div>
+            <div style="font-size: 12px; font-weight: 700; color: #FFFFFF;">Natural Language</div>
+            <div style="font-size: 10px; color: #64748B;">User Prompt</div>
+          </div>
+          <div style="color: #475569; font-size: 16px;">→</div>
+
+          <!-- Node 2 -->
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; width: 110px;">
+            <div style="width: 44px; height: 44px; border-radius: 50%; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.4); display: flex; align-items: center; justify-content: center; font-size: 18px;">🤖</div>
+            <div style="font-size: 12px; font-weight: 700; color: #38BDF8;">AI Intent</div>
+            <div style="font-size: 10px; color: #64748B;">Gemini 2.5 Flash</div>
+          </div>
+          <div style="color: #475569; font-size: 16px;">→</div>
+
+          <!-- Node 3 -->
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; width: 110px;">
+            <div style="width: 44px; height: 44px; border-radius: 50%; background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.4); display: flex; align-items: center; justify-content: center; font-size: 18px;">📋</div>
+            <div style="font-size: 12px; font-weight: 700; color: #C084FC;">Structured Intent</div>
+            <div style="font-size: 10px; color: #64748B;">Typed Schema</div>
+          </div>
+          <div style="color: #475569; font-size: 16px;">→</div>
+
+          <!-- Node 4 -->
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; width: 110px;">
+            <div style="width: 44px; height: 44px; border-radius: 50%; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.4); display: flex; align-items: center; justify-content: center; font-size: 18px;">⚖️</div>
+            <div style="font-size: 12px; font-weight: 700; color: #F59E0B;">Deterministic Validation</div>
+            <div style="font-size: 10px; color: #64748B;">Hard Policy Checks</div>
+          </div>
+          <div style="color: #475569; font-size: 16px;">→</div>
+
+          <!-- Node 5 -->
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; width: 110px;">
+            <div style="width: 44px; height: 44px; border-radius: 50%; background: rgba(255, 42, 133, 0.15); border: 1px solid rgba(255, 42, 133, 0.4); display: flex; align-items: center; justify-content: center; font-size: 18px;">👁️</div>
+            <div style="font-size: 12px; font-weight: 700; color: #FF2A85;">Human Review</div>
+            <div style="font-size: 10px; color: #64748B;">Preview Modal</div>
+          </div>
+          <div style="color: #475569; font-size: 16px;">→</div>
+
+          <!-- Node 6 -->
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; width: 110px;">
+            <div style="width: 44px; height: 44px; border-radius: 50%; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); display: flex; align-items: center; justify-content: center; font-size: 18px;">🔐</div>
+            <div style="font-size: 12px; font-weight: 700; color: #10B981;">On-Device Signing</div>
+            <div style="font-size: 10px; color: #64748B;">B-Key 6-Digit PIN</div>
+          </div>
+          <div style="color: #475569; font-size: 16px;">→</div>
+
+          <!-- Node 7 -->
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; width: 110px;">
+            <div style="width: 44px; height: 44px; border-radius: 50%; background: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 18px; color: #080A10;">⚡</div>
+            <div style="font-size: 12px; font-weight: 700; color: #FFFFFF;">BMONI Execution</div>
+            <div style="font-size: 10px; color: #64748B;">On-Chain Settlement</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 6 Clear Guarantees in 2 Columns -->
+      <div class="grid-2col" style="flex: 1;">
+        <div class="glass-card" style="display: flex; flex-direction: column; justify-content: space-around;">
+          <div style="display: flex; align-items: flex-start; gap: 14px;">
+            <span style="color: #EF4444; font-size: 18px; font-weight: 800;">✕</span>
+            <div>
+              <div style="font-size: 16px; font-weight: 700; color: #FFFFFF;">AI does NOT hold private keys</div>
+              <div style="font-size: 13px; color: #94A3B8;">Keys are generated and stored exclusively in Android Keystore / iOS Secure Enclave via BMONI Embedded SDK.</div>
+            </div>
+          </div>
+          <div style="display: flex; align-items: flex-start; gap: 14px;">
+            <span style="color: #EF4444; font-size: 18px; font-weight: 800;">✕</span>
+            <div>
+              <div style="font-size: 16px; font-weight: 700; color: #FFFFFF;">AI does NOT sign transactions</div>
+              <div style="font-size: 13px; color: #94A3B8;">Only the user's on-device PIN can unlock the secp256k1 signing key to produce authentic signatures.</div>
+            </div>
+          </div>
+          <div style="display: flex; align-items: flex-start; gap: 14px;">
+            <span style="color: #EF4444; font-size: 18px; font-weight: 800;">✕</span>
+            <div>
+              <div style="font-size: 16px; font-weight: 700; color: #FFFFFF;">AI does NOT independently move money</div>
+              <div style="font-size: 13px; color: #94A3B8;">Zero automatic movement. Every proposed transaction expires unless explicitly signed by the owner.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="glass-card" style="display: flex; flex-direction: column; justify-content: space-around;">
+          <div style="display: flex; align-items: flex-start; gap: 14px;">
+            <span style="color: #10B981; font-size: 18px; font-weight: 800;">✓</span>
+            <div>
+              <div style="font-size: 16px; font-weight: 700; color: #FFFFFF;">Deterministic validation outside the model</div>
+              <div style="font-size: 13px; color: #94A3B8;">Dual-sided TypeScript and Dart validators ensure allocation percentages strictly equal 100% and currencies are allowed.</div>
+            </div>
+          </div>
+          <div style="display: flex; align-items: flex-start; gap: 14px;">
+            <span style="color: #10B981; font-size: 18px; font-weight: 800;">✓</span>
+            <div>
+              <div style="font-size: 16px; font-weight: 700; color: #FFFFFF;">Explicit human preview & fee disclosure</div>
+              <div style="font-size: 13px; color: #94A3B8;">Every operation shows exact source, conversion, destination, FX rates, and minor-unit fees before authorization.</div>
+            </div>
+          </div>
+          <div style="display: flex; align-items: flex-start; gap: 14px;">
+            <span style="color: #10B981; font-size: 18px; font-weight: 800;">✓</span>
+            <div>
+              <div style="font-size: 16px; font-weight: 700; color: #FFFFFF;">Hardware enclave signing boundary</div>
+              <div style="font-size: 13px; color: #94A3B8;">Complies strictly with EIP-191 personal signing and raw 32-byte hash secp256k1 BMONI proposal verification.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide-footer">
+      <div class="footer-brand">FlowPay Governance</div>
+      <div>Cryptographic Safeguards & Non-Custodial Intent Layer</div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- SLIDE 6: BMONI INTEGRATION                 -->
+  <!-- ========================================== -->
+  <div class="slide" id="slide-6">
+    <div class="slide-header">
+      <div class="header-left">
+        <div class="category-badge" style="color: #10B981;"><span class="category-dot" style="background-color: #10B981; box-shadow: 0 0 10px #10B981;"></span> Native Infrastructure</div>
+        <h2 class="slide-title">Built on BMONI's financial infrastructure.</h2>
+        <p class="slide-subtitle">Deep, authentic integration across BMONI's official Flutter packages, REST APIs, and cryptographic primitives.</p>
+      </div>
+      <div class="slide-counter"><span class="active">06</span> / 12</div>
+    </div>
+
+    <div class="slide-body" style="align-items: center;">
+      <!-- Left Column: Architectural Integration Stack -->
+      <div style="flex: 1.2; display: flex; flex-direction: column; gap: 16px;">
+        <div class="glass-card" style="padding: 22px 26px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span style="font-size: 20px;">📱</span>
+              <span style="font-size: 17px; font-weight: 700; color: #FFFFFF;">Flutter Mobile App Architecture</span>
+            </div>
+            <span class="pill pill-cyan">Official SDKs</span>
+          </div>
+          <p style="font-size: 13px; line-height: 1.55; color: #94A3B8; margin-bottom: 12px;">
+            Integrates official BMONI packages: <code style="color: #38BDF8;">bmoni_embedded_sdk: ^0.0.2</code>, <code style="color: #38BDF8;">bkey_uikit: ^0.0.1</code>, and <code style="color: #38BDF8;">bmoni_embedded_wallets_cards: ^0.0.1</code>.
+          </p>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <span class="pill" style="background: rgba(255,255,255,0.05); color: #CBD5E1;">EmbeddedWalletCard</span>
+            <span class="pill" style="background: rgba(255,255,255,0.05); color: #CBD5E1;">PBKDF2 Salted PIN</span>
+            <span class="pill" style="background: rgba(255,255,255,0.05); color: #CBD5E1;">Secure Enclave Signing</span>
+          </div>
+        </div>
+
+        <div class="glass-card" style="padding: 22px 26px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span style="font-size: 20px;">🔒</span>
+              <span style="font-size: 17px; font-weight: 700; color: #FFFFFF;">Zero Client-Side Secret Leakage</span>
+            </div>
+            <span class="pill pill-pink">Security Isolation</span>
+          </div>
+          <p style="font-size: 13px; line-height: 1.55; color: #94A3B8;">
+            Partner <code style="color: #FF2A85;">x-api-key</code> remains strictly server-side in FlowPay's Node.js backend. Private keys never leave the phone. The backend proxies proposals; mobile signs on-device.
+          </p>
+        </div>
+
+        <div class="glass-card" style="padding: 22px 26px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span style="font-size: 20px;">⚡</span>
+              <span style="font-size: 17px; font-weight: 700; color: #FFFFFF;">26 Verified BMONI Platform Endpoints</span>
+            </div>
+            <span class="pill pill-emerald">Live Verified</span>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 12px; color: #CBD5E1;">
+            <div>• <strong style="color: #F8FAFC;">Smart Wallets:</strong> Managed ERC-4337</div>
+            <div>• <strong style="color: #F8FAFC;">Proposals:</strong> 4-call sequence</div>
+            <div>• <strong style="color: #F8FAFC;">KYC/KYB:</strong> Nigeria BVN & Mexico CURP</div>
+            <div>• <strong style="color: #F8FAFC;">Virtual Cards:</strong> Mastercard on BMONI</div>
+            <div>• <strong style="color: #F8FAFC;">Webhooks:</strong> HMAC-SHA256 verification</div>
+            <div>• <strong style="color: #F8FAFC;">Currencies:</strong> CNGN, MEXe, USDB</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Phone Mockup showing B-Key On-Device PIN Sheet -->
+      <div style="flex: 0.8; display: flex; justify-content: center; align-items: center;">
+        <div class="phone-frame">
+          <div class="phone-notch">
+            <div class="notch-sensor"></div>
+            <div class="notch-camera"></div>
+          </div>
+          <img src="assets/bkey_pin_signing_real.png" class="phone-screen" alt="B-Key On-Device PIN Auth Sheet">
+        </div>
+      </div>
+    </div>
+
+    <div class="slide-footer">
+      <div class="footer-brand">BMONI Integration Architecture</div>
+      <div>Zero Invented Capabilities • 100% Mintlify Spec Conformance</div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- SLIDE 7: THE WOW MOMENT                    -->
+  <!-- ========================================== -->
+  <div class="slide" id="slide-7">
+    <div class="slide-header">
+      <div class="header-left">
+        <div class="category-badge"><span class="category-dot"></span> The Wow Moment</div>
+        <h2 class="slide-title">What happens when the user asks for more than they have?</h2>
+        <p class="slide-subtitle">Balance-aware smart routing that transforms failure states into guided financial operations.</p>
+      </div>
+      <div class="slide-counter"><span class="active">07</span> / 12</div>
+    </div>
+
+    <div class="slide-body" style="align-items: center;">
+      <!-- Left Column: Context & Conversion Explanation -->
+      <div style="flex: 1.2; display: flex; flex-direction: column; gap: 20px;">
+        <!-- User Request -->
+        <div class="glass-card-highlight" style="padding: 20px 24px;">
+          <div style="font-size: 12px; font-weight: 700; color: #FF2A85; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px;">Natural Language Command</div>
+          <div style="font-size: 20px; font-weight: 600; color: #FFFFFF; font-style: italic;">"Send $500 to my designer in Ghana."</div>
+        </div>
+
+        <!-- The Problem vs FlowPay Solution Comparison -->
+        <div class="grid-2col">
+          <div class="glass-card" style="border-top: 3px solid #EF4444;">
+            <div style="font-size: 12px; font-weight: 700; color: #EF4444; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 8px;">Traditional Banking App</div>
+            <div style="font-size: 18px; font-weight: 800; color: #EF4444; margin-bottom: 8px;">❌ "Insufficient Funds"</div>
+            <p style="font-size: 13px; line-height: 1.5; color: #94A3B8;">USD smart wallet only holds $300. Transaction immediately rejected. User forced to manually swap wallets, calculate rates, and start over.</p>
+          </div>
+
+          <div class="glass-card" style="border-top: 3px solid #10B981;">
+            <div style="font-size: 12px; font-weight: 700; color: #10B981; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 8px;">FlowPay Smart Operator</div>
+            <div style="font-size: 18px; font-weight: 800; color: #10B981; margin-bottom: 8px;">✓ Balance-Aware Auto-Route</div>
+            <p style="font-size: 13px; line-height: 1.5; color: #94A3B8;">FlowPay detects ₦6,820,000 NGN in user's secondary wallet. Automatically structures the exact funding path and conversion needed.</p>
+          </div>
+        </div>
+
+        <!-- Dynamic Conversion Transparency Card -->
+        <div class="glass-card" style="padding: 20px 24px;">
+          <div style="font-size: 12px; font-weight: 700; color: #38BDF8; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 12px;">Dynamic Multi-Rail Funding Path</div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 14px;">
+            <span style="color: #94A3B8;">Primary USD Balance Applied:</span>
+            <span style="font-weight: 700; color: #FFFFFF;" class="tabular">$300.00 USD</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 14px;">
+            <span style="color: #94A3B8;">Remaining Deficit Converted:</span>
+            <span style="font-weight: 700; color: #10B981;" class="tabular">₦310,000.00 NGN ($200.00 USD @ 1,550 NGN/USD)</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 14px;">
+            <span style="color: #94A3B8;">Transparent Fees:</span>
+            <span style="font-weight: 700; color: #F59E0B;" class="tabular">$0.50 Network Fee • 15 bps FX</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 10px; border-top: 1px solid rgba(255, 255, 255, 0.08); font-size: 16px;">
+            <span style="font-weight: 700; color: #FFFFFF;">Total Payout to Designer:</span>
+            <span style="font-weight: 800; color: #38BDF8; font-size: 18px;" class="tabular">$500.00 USD</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Phone Mockup showing the Live Transfer Review Screen -->
+      <div style="flex: 0.8; display: flex; justify-content: center; align-items: center;">
+        <div class="phone-frame">
+          <div class="phone-notch">
+            <div class="notch-sensor"></div>
+            <div class="notch-camera"></div>
+          </div>
+          <img src="assets/app_bmoni_uikit_send_preview.png" class="phone-screen" alt="FlowPay Send Money Review Screen">
+        </div>
+      </div>
+    </div>
+
+    <div class="slide-footer">
+      <div class="footer-brand">FlowPay Intelligence</div>
+      <div>Balance-Aware Multi-Currency Routing Engine</div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- SLIDE 8: GLOBAL PAYROLL                    -->
+  <!-- ========================================== -->
+  <div class="slide" id="slide-8">
+    <div class="slide-header">
+      <div class="header-left">
+        <div class="category-badge"><span class="category-dot"></span> Business Hero Story</div>
+        <h2 class="slide-title">One Employer. Many Countries. One Bill.</h2>
+        <p class="slide-subtitle">Employers manage distributed global teams from a single dashboard. Aggregated in USD, fanned out in local currencies.</p>
+      </div>
+      <div class="slide-counter"><span class="active">08</span> / 12</div>
+    </div>
+
+    <div class="slide-body" style="align-items: center;">
+      <!-- Left Column: Business Payroll Dashboard Breakdown -->
+      <div style="flex: 1.2; display: flex; flex-direction: column; gap: 18px;">
+        <!-- Single Bill Aggregate Card -->
+        <div class="glass-card-highlight" style="padding: 22px 28px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <div>
+              <div style="font-size: 12px; font-weight: 700; color: #FF2A85; letter-spacing: 0.1em; text-transform: uppercase;">Single Aggregated Bill</div>
+              <div style="font-size: 36px; font-weight: 800; color: #FFFFFF; line-height: 1.1;" class="tabular">$4,000.00 <span style="font-size: 18px; color: #94A3B8; font-weight: 500;">USD Total</span></div>
+            </div>
+            <div style="text-align: right;">
+              <span class="pill pill-pink" style="font-size: 13px; padding: 6px 14px;">2 Employees • 2 Countries</span>
+              <div style="font-size: 12px; color: #64748B; margin-top: 4px;">1-Click Payout Fan-Out</div>
+            </div>
+          </div>
+
+          <!-- Employee Rows -->
+          <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 14px;">
+            <div style="background: rgba(255, 255, 255, 0.04); border-radius: 12px; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center;">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 20px;">🇳🇬</span>
+                <div>
+                  <div style="font-size: 14px; font-weight: 700; color: #FFFFFF;">Bunch Dillon (Senior Engineer)</div>
+                  <div style="font-size: 11px; color: #94A3B8;">Disbursed in NGN / CNGN Rail</div>
+                </div>
+              </div>
+              <div style="font-size: 15px; font-weight: 700; color: #38BDF8;" class="tabular">$2,000.00 USD</div>
+            </div>
+
+            <div style="background: rgba(255, 255, 255, 0.04); border-radius: 12px; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center;">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 20px;">🇲🇽</span>
+                <div>
+                  <div style="font-size: 14px; font-weight: 700; color: #FFFFFF;">Samson Jabo (Product Designer)</div>
+                  <div style="font-size: 11px; color: #94A3B8;">Disbursed in MXN / MEXe Rail</div>
+                </div>
+              </div>
+              <div style="font-size: 15px; font-weight: 700; color: #38BDF8;" class="tabular">$2,000.00 USD</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 97% Fee Reduction Comparison -->
+        <div class="glass-card" style="padding: 20px 26px;">
+          <div style="font-size: 12px; font-weight: 700; color: #10B981; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 12px;">Radical Cost Transparency: 97% Fee Reduction</div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; text-align: center;">
+            <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 12px; padding: 12px;">
+              <div style="font-size: 11px; color: #EF4444; font-weight: 600; text-transform: uppercase;">Traditional Wire</div>
+              <div style="font-size: 22px; font-weight: 800; color: #EF4444; margin-top: 4px;" class="tabular">$340.00</div>
+              <div style="font-size: 10px; color: #94A3B8; margin-top: 2px;">$170/wire + 3-5 days</div>
+            </div>
+            <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 12px; padding: 12px;">
+              <div style="font-size: 11px; color: #10B981; font-weight: 600; text-transform: uppercase;">FlowPay on BMONI</div>
+              <div style="font-size: 22px; font-weight: 800; color: #10B981; margin-top: 4px;" class="tabular">$10.00</div>
+              <div style="font-size: 10px; color: #94A3B8; margin-top: 2px;">Instant smart settlement</div>
+            </div>
+            <div style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 12px; padding: 12px;">
+              <div style="font-size: 11px; color: #38BDF8; font-weight: 600; text-transform: uppercase;">Employer Savings</div>
+              <div style="font-size: 22px; font-weight: 800; color: #38BDF8; margin-top: 4px;" class="tabular">$330.00</div>
+              <div style="font-size: 10px; color: #94A3B8; margin-top: 2px;">97% cost reduction</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="font-size: 13px; color: #94A3B8; line-height: 1.5;">
+          FlowPay orchestrates multi-country payroll workflows while BMONI provides the underlying wallet, onboarding, payment, and virtual card infrastructure.
+        </div>
+      </div>
+
+      <!-- Right Column: Phone Mockup showing Live Payroll Screen -->
+      <div style="flex: 0.8; display: flex; justify-content: center; align-items: center;">
+        <div class="phone-frame">
+          <div class="phone-notch">
+            <div class="notch-sensor"></div>
+            <div class="notch-camera"></div>
+          </div>
+          <img src="assets/payroll_screen_live.png" class="phone-screen" alt="FlowPay Global Payroll Screen">
+        </div>
+      </div>
+    </div>
+
+    <div class="slide-footer">
+      <div class="footer-brand">FlowPay Business</div>
+      <div>Global Multi-Country Payroll Orchestrator</div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- SLIDE 9: PRODUCT ARCHITECTURE              -->
+  <!-- ========================================== -->
+  <div class="slide" id="slide-9">
+    <div class="slide-header">
+      <div class="header-left">
+        <div class="category-badge" style="color: #38BDF8;"><span class="category-dot" style="background-color: #38BDF8; box-shadow: 0 0 10px #38BDF8;"></span> System Architecture</div>
+        <h2 class="slide-title">Simple architecture. Strong security boundaries.</h2>
+        <p class="slide-subtitle">Clean three-tier separation between the AI reasoning layer, application orchestration, and BMONI financial infrastructure.</p>
+      </div>
+      <div class="slide-counter"><span class="active">09</span> / 12</div>
+    </div>
+
+    <div class="slide-body" style="flex-direction: column; gap: 20px;">
+      <!-- 3 Horizontal Architecture Tiers -->
+      
+      <!-- Tier 1: Client Layer -->
+      <div class="glass-card" style="border-left: 4px solid #38BDF8; padding: 20px 28px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="font-size: 20px;">📱</span>
+            <span style="font-size: 18px; font-weight: 800; color: #FFFFFF;">Client Tier: Flutter Mobile (Self-Custody & UI)</span>
+          </div>
+          <span class="pill pill-cyan">On-Device Security Enclave</span>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 16px; font-size: 13px; color: #CBD5E1;">
+          <div style="background: rgba(255,255,255,0.03); padding: 10px 14px; border-radius: 10px;">
+            <div style="font-weight: 700; color: #F8FAFC;">FlowPay UI Shell</div>
+            <div style="color: #94A3B8; font-size: 11px;">Dual Personal/Business modes</div>
+          </div>
+          <div style="background: rgba(255,255,255,0.03); padding: 10px 14px; border-radius: 10px;">
+            <div style="font-weight: 700; color: #F8FAFC;">BMONI Embedded SDK</div>
+            <div style="color: #94A3B8; font-size: 11px;">Keypair init & PBKDF2 PIN</div>
+          </div>
+          <div style="background: rgba(255,255,255,0.03); padding: 10px 14px; border-radius: 10px;">
+            <div style="font-weight: 700; color: #F8FAFC;">bkey_uikit Design System</div>
+            <div style="color: #94A3B8; font-size: 11px;">13 verified primitives</div>
+          </div>
+          <div style="background: rgba(255,255,255,0.03); padding: 10px 14px; border-radius: 10px;">
+            <div style="font-weight: 700; color: #F8FAFC;">On-Device Hardware Signing</div>
+            <div style="color: #94A3B8; font-size: 11px;">EIP-191 & raw secp256k1</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: center; color: #475569; font-size: 18px; margin: -10px 0;">↕ REST API Proxy & Webhook Dispatch</div>
+
+      <!-- Tier 2: Service Layer -->
+      <div class="glass-card" style="border-left: 4px solid #FF2A85; padding: 20px 28px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="font-size: 20px;">⚙️</span>
+            <span style="font-size: 18px; font-weight: 800; color: #FFFFFF;">Service Tier: FlowPay Backend (Orchestration & Validation)</span>
+          </div>
+          <span class="pill pill-pink">Server-Side Partner Credentials</span>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 16px; font-size: 13px; color: #CBD5E1;">
+          <div style="background: rgba(255,255,255,0.03); padding: 10px 14px; border-radius: 10px;">
+            <div style="font-weight: 700; color: #F8FAFC;">AI Intent Interpreter</div>
+            <div style="color: #94A3B8; font-size: 11px;">Gemini 2.5 Flash structured parser</div>
+          </div>
+          <div style="background: rgba(255,255,255,0.03); padding: 10px 14px; border-radius: 10px;">
+            <div style="font-weight: 700; color: #F8FAFC;">Deterministic Policy Guard</div>
+            <div style="color: #94A3B8; font-size: 11px;">100% split totals & currency checks</div>
+          </div>
+          <div style="background: rgba(255,255,255,0.03); padding: 10px 14px; border-radius: 10px;">
+            <div style="font-weight: 700; color: #F8FAFC;">Payroll Fan-Out Engine</div>
+            <div style="color: #94A3B8; font-size: 11px;">4-call proposal sequence & retry</div>
+          </div>
+          <div style="background: rgba(255,255,255,0.03); padding: 10px 14px; border-radius: 10px;">
+            <div style="font-weight: 700; color: #F8FAFC;">PostgreSQL / Prisma ORM</div>
+            <div style="color: #94A3B8; font-size: 11px;">Full audit log & idempotency table</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: center; color: #475569; font-size: 18px; margin: -10px 0;">↕ Authenticated API Rails (x-api-key)</div>
+
+      <!-- Tier 3: Infrastructure Layer -->
+      <div class="glass-card" style="border-left: 4px solid #10B981; padding: 20px 28px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="font-size: 20px;">🏛️</span>
+            <span style="font-size: 18px; font-weight: 800; color: #FFFFFF;">Infrastructure Tier: BMONI Platform (Financial Rails)</span>
+          </div>
+          <span class="pill pill-emerald">Regulated Infrastructure</span>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 16px; font-size: 13px; color: #CBD5E1;">
+          <div style="background: rgba(255,255,255,0.03); padding: 10px 14px; border-radius: 10px;">
+            <div style="font-weight: 700; color: #F8FAFC;">Smart Wallets</div>
+            <div style="color: #94A3B8; font-size: 11px;">ERC-4337 managed account rails</div>
+          </div>
+          <div style="background: rgba(255,255,255,0.03); padding: 10px 14px; border-radius: 10px;">
+            <div style="font-weight: 700; color: #F8FAFC;">Multi-Currency FX Rails</div>
+            <div style="color: #94A3B8; font-size: 11px;">CNGN (Nigeria), MEXe (Mexico), USDB</div>
+          </div>
+          <div style="background: rgba(255,255,255,0.03); padding: 10px 14px; border-radius: 10px;">
+            <div style="font-weight: 700; color: #F8FAFC;">Virtual Card Program</div>
+            <div style="color: #94A3B8; font-size: 11px;">Mastercard card-as-object issuance</div>
+          </div>
+          <div style="background: rgba(255,255,255,0.03); padding: 10px 14px; border-radius: 10px;">
+            <div style="font-weight: 700; color: #F8FAFC;">Compliance & Webhooks</div>
+            <div style="color: #94A3B8; font-size: 11px;">Tier 1 KYC & raw HMAC callbacks</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide-footer">
+      <div class="footer-brand">FlowPay Engineering</div>
+      <div>Strict Isolation Between Reasoning, Logic, and Settlement</div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- SLIDE 10: WHY THIS MATTERS                 -->
+  <!-- ========================================== -->
+  <div class="slide" id="slide-10">
+    <div class="slide-header">
+      <div class="header-left">
+        <div class="category-badge"><span class="category-dot"></span> Impact & Inclusion</div>
+        <h2 class="slide-title">From financial tools to financial agency.</h2>
+        <p class="slide-subtitle">How FlowPay transforms economic mobility for the world's fastest-growing digital workforce.</p>
+      </div>
+      <div class="slide-counter"><span class="active">10</span> / 12</div>
+    </div>
+
+    <div class="slide-body" style="flex-direction: column; gap: 24px;">
+      <!-- 4 Impact Pillars Grid -->
+      <div class="grid-2col" style="flex: 1;">
+        <div class="glass-card" style="display: flex; gap: 18px; align-items: flex-start;">
+          <div style="width: 52px; height: 52px; border-radius: 16px; background: rgba(255, 42, 133, 0.15); border: 1px solid rgba(255, 42, 133, 0.3); display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0;">💰</div>
+          <div>
+            <h3 style="font-size: 20px; font-weight: 700; color: #FFFFFF; margin-bottom: 8px;">Intentional Wealth Retention</h3>
+            <p style="font-size: 14px; line-height: 1.55; color: #94A3B8;">
+              Freelancers who receive lump-sum foreign payments often accidentally spend their tax liabilities or emergency reserves. FlowPay executes automatic sweeps the instant money arrives, guaranteeing intentional savings.
+            </p>
+          </div>
+        </div>
+
+        <div class="glass-card" style="display: flex; gap: 18px; align-items: flex-start;">
+          <div style="width: 52px; height: 52px; border-radius: 16px; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.3); display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0;">🌍</div>
+          <div>
+            <h3 style="font-size: 20px; font-weight: 700; color: #FFFFFF; margin-bottom: 8px;">Leveling Cross-Border Work</h3>
+            <p style="font-size: 14px; line-height: 1.55; color: #94A3B8;">
+              African and Latin American professionals can now compete for global roles without forfeiting 5% to 8% of their gross earnings to predatory intermediary banks and exploitative exchange rates.
+            </p>
+          </div>
+        </div>
+
+        <div class="glass-card" style="display: flex; gap: 18px; align-items: flex-start;">
+          <div style="width: 52px; height: 52px; border-radius: 16px; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0;">🏢</div>
+          <div>
+            <h3 style="font-size: 20px; font-weight: 700; color: #FFFFFF; margin-bottom: 8px;">Micro-Business Global Scaling</h3>
+            <p style="font-size: 14px; line-height: 1.55; color: #94A3B8;">
+              Small startups in London, New York, or Lagos can now hire contractors in Nigeria and Mexico effortlessly. One aggregated bill in USD, local-currency payouts, and virtual employee cards instantly.
+            </p>
+          </div>
+        </div>
+
+        <div class="glass-card" style="display: flex; gap: 18px; align-items: flex-start;">
+          <div style="width: 52px; height: 52px; border-radius: 16px; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.3); display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0;">🛡️</div>
+          <div>
+            <h3 style="font-size: 20px; font-weight: 700; color: #FFFFFF; margin-bottom: 8px;">Authentic Self-Custodial Inclusion</h3>
+            <p style="font-size: 14px; line-height: 1.55; color: #94A3B8;">
+              Unlike custodial fintechs that freeze user accounts arbitrarily, FlowPay builds on self-custodial smart wallets. Users hold their own keys in their hardware enclave, backed by regulated BMONI infrastructure.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Strong Statement Banner -->
+      <div style="background: linear-gradient(90deg, rgba(255, 42, 133, 0.15) 0%, rgba(56, 189, 248, 0.15) 100%); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 16px; padding: 22px 36px; text-align: center;">
+        <span style="font-size: 21px; font-weight: 700; color: #FFFFFF; line-height: 1.4;">
+          "The future of financial software isn't just moving money.<br>
+          <span style="color: #38BDF8;">It's helping people make better decisions about it.</span>"
+        </span>
+      </div>
+    </div>
+
+    <div class="slide-footer">
+      <div class="footer-brand">FlowPay Vision</div>
+      <div>Financial Inclusion Through Intelligent Agency</div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- SLIDE 11: LIVE DEMO ROADMAP                -->
+  <!-- ========================================== -->
+  <div class="slide" id="slide-11">
+    <div class="slide-header">
+      <div class="header-left">
+        <div class="category-badge" style="color: #38BDF8;"><span class="category-dot" style="background-color: #38BDF8; box-shadow: 0 0 10px #38BDF8;"></span> Interactive Demonstration</div>
+        <h2 class="slide-title">Let's see it work.</h2>
+        <p class="slide-subtitle">Three live demonstration flows proving real working code across the mobile app, backend, and BMONI infrastructure.</p>
+      </div>
+      <div class="slide-counter"><span class="active">11</span> / 12</div>
+    </div>
+
+    <div class="slide-body" style="align-items: center;">
+      <!-- Left Column: 3 Step Demo Roadmap -->
+      <div style="flex: 1.2; display: flex; flex-direction: column; gap: 16px;">
+        <!-- Demo Step 1 -->
+        <div class="glass-card" style="padding: 20px 24px; border-left: 4px solid #FF2A85;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <span class="pill pill-pink">DEMO 01 — PERSONAL</span>
+            <span style="font-size: 13px; font-weight: 700; color: #FF2A85;">Autonomous Money Mission</span>
+          </div>
+          <h3 style="font-size: 18px; font-weight: 700; color: #FFFFFF; margin-bottom: 6px;">Natural Language Intent → Execution</h3>
+          <p style="font-size: 13px; line-height: 1.5; color: #94A3B8;">
+            Enter: <em style="color: #CBD5E1;">"Whenever I receive money, keep 30% USD, convert 50% Naira, reserve 20% Tax"</em>. AI interprets → Deterministic validation → Review preview modal → B-Key hardware PIN sign → Execution.
+          </p>
+        </div>
+
+        <!-- Demo Step 2 -->
+        <div class="glass-card" style="padding: 20px 24px; border-left: 4px solid #38BDF8;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <span class="pill pill-cyan">DEMO 02 — BUSINESS</span>
+            <span style="font-size: 13px; font-weight: 700; color: #38BDF8;">Global Payroll Fan-Out</span>
+          </div>
+          <h3 style="font-size: 18px; font-weight: 700; color: #FFFFFF; margin-bottom: 6px;">One Employer. Many Countries. One Bill.</h3>
+          <p style="font-size: 13px; line-height: 1.5; color: #94A3B8;">
+            Nigeria (🇳🇬 $2,000) + Mexico (🇲🇽 $2,000) = $4,000 aggregate bill. One "Run Payroll" action → 4-stage timeline progression → Local currency disbursement on BMONI rails with 97% fee savings.
+          </p>
+        </div>
+
+        <!-- Demo Step 3 -->
+        <div class="glass-card" style="padding: 20px 24px; border-left: 4px solid #10B981;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <span class="pill pill-emerald">DEMO 03 — SECURITY</span>
+            <span style="font-size: 13px; font-weight: 700; color: #10B981;">Hardware Signing & Corporate Audit</span>
+          </div>
+          <h3 style="font-size: 18px; font-weight: 700; color: #FFFFFF; margin-bottom: 6px;">B-Key PIN Signing & Ledger Verification</h3>
+          <p style="font-size: 13px; line-height: 1.5; color: #94A3B8;">
+            Observe on-device 6-digit PIN auth sheet. Review immutable audit activity logs in PostgreSQL with zero credential leakage and full transaction references.
+          </p>
+        </div>
+      </div>
+
+      <!-- Right Column: Phone Mockup showing Live Payroll Execution Timeline -->
+      <div style="flex: 0.8; display: flex; justify-content: center; align-items: center;">
+        <div class="phone-frame">
+          <div class="phone-notch">
+            <div class="notch-sensor"></div>
+            <div class="notch-camera"></div>
+          </div>
+          <img src="assets/payroll_running_timeline.png" class="phone-screen" alt="FlowPay 4-Stage Execution Timeline">
+        </div>
+      </div>
+    </div>
+
+    <div class="slide-footer">
+      <div class="footer-brand">FlowPay Live Demonstration</div>
+      <div>Transition to Live Mobile & Backend Environment</div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- SLIDE 12: CLOSING                          -->
+  <!-- ========================================== -->
+  <div class="slide" id="slide-12" style="justify-content: space-between; align-items: center; text-align: center; padding: 72px 96px 56px 96px; background: radial-gradient(circle at 50% 50%, rgba(255, 42, 133, 0.15) 0%, rgba(8, 10, 16, 0.95) 70%), #080A10;">
+
+    <!-- Top Badge -->
+    <div style="position: relative; z-index: 10;">
+      <span class="pill pill-pink" style="font-size: 14px; padding: 8px 20px;">BMONI FINTECH HACKATHON 2026</span>
+    </div>
+
+    <!-- Center Pitch & Closing Statement -->
+    <div style="position: relative; z-index: 10; max-width: 900px;">
+      <div style="display: flex; justify-content: center; align-items: center; gap: 16px; margin-bottom: 24px;">
+        <svg width="56" height="56" viewBox="0 0 42 42" fill="none">
+          <rect width="42" height="42" rx="12" fill="#FF2A85" fill-opacity="0.15" stroke="#FF2A85" stroke-width="1.5"/>
+          <path d="M12 21C12 16.0294 16.0294 12 21 12H30V18H21C19.3431 18 18 19.3431 18 21C18 22.6569 19.3431 24 21 24H27V30H21C16.0294 30 12 25.9706 12 21Z" fill="#FF2A85"/>
+          <circle cx="28" cy="15" r="3" fill="#38BDF8"/>
+        </svg>
+        <span style="font-size: 48px; font-weight: 800; letter-spacing: -0.03em; color: #FFFFFF;">FlowPay</span>
+      </div>
+
+      <h1 style="font-size: 52px; font-weight: 800; line-height: 1.15; letter-spacing: -0.03em; color: #FFFFFF; margin-bottom: 28px;">
+        Your money. Your rules.<br>
+        <span style="background: linear-gradient(135deg, #FF2A85 0%, #FF7300 50%, #FFB800 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">AI executes.</span>
+      </h1>
+
+      <!-- Triad Principles -->
+      <div style="display: flex; justify-content: center; gap: 32px; margin-bottom: 40px;">
+        <div style="background: rgba(18, 24, 38, 0.7); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 16px 24px;">
+          <div style="font-size: 13px; color: #38BDF8; font-weight: 700; text-transform: uppercase;">1. AI INTENT</div>
+          <div style="font-size: 16px; font-weight: 700; color: #FFFFFF; margin-top: 4px;">Understands intent.</div>
+        </div>
+        <div style="background: rgba(18, 24, 38, 0.7); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 16px 24px;">
+          <div style="font-size: 13px; color: #FF2A85; font-weight: 700; text-transform: uppercase;">2. HUMAN GOVERNANCE</div>
+          <div style="font-size: 16px; font-weight: 700; color: #FFFFFF; margin-top: 4px;">You stay in control.</div>
+        </div>
+        <div style="background: rgba(18, 24, 38, 0.7); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 16px 24px;">
+          <div style="font-size: 13px; color: #10B981; font-weight: 700; text-transform: uppercase;">3. BMONI RAILS</div>
+          <div style="font-size: 16px; font-weight: 700; color: #FFFFFF; margin-top: 4px;">BMONI moves the money.</div>
+        </div>
+      </div>
+
+      <div style="font-size: 32px; font-weight: 700; color: #FFFFFF; letter-spacing: -0.02em;">
+        Thank you.
+      </div>
+      <div style="font-size: 16px; color: #94A3B8; margin-top: 8px;">
+        Ready for Live Demonstration & Q&A
+      </div>
+    </div>
+
+    <!-- Bottom Footer -->
+    <div style="position: relative; z-index: 10; font-size: 14px; color: #64748B;">
+      github.com/flowpay-bmoni/flowpay • BMONI Hackathon 2026
+    </div>
+  </div>
+
+</body>
+</html>

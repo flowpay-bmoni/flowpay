@@ -1,6 +1,9 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:http/http.dart' as http;
 import '../../core/auth/account_capabilities.dart';
+import '../../core/config/api_config.dart';
 import '../../core/design_system/buttons.dart';
 import '../../core/design_system/input_fields.dart';
 import '../../core/theme/colors.dart';
@@ -103,7 +106,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     });
   }
 
-  void _submit() {
+  void _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
     final userId =
@@ -127,6 +130,23 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
       createdAt: DateTime.now(),
     );
 
+    try {
+      await http.post(
+        Uri.parse('${ApiConfig.baseUrl}/api/auth/signup'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'fullName': profile.fullName,
+          'email': profile.email,
+          'accountType': profile.accountType.name,
+          'country': profile.country,
+          'phone': profile.phone,
+          'companyName': profile.companyName,
+          'companyRole': profile.companyRole,
+        }),
+      ).timeout(const Duration(seconds: 3));
+    } catch (_) {}
+
+    if (!mounted) return;
     Navigator.push(
       context,
       MaterialPageRoute(
