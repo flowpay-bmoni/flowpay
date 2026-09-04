@@ -24,10 +24,16 @@ if (env.NODE_ENV !== 'production') {
 // Database initialisation — run seed if tables are empty
 // ---------------------------------------------------------------------------
 
-export async function initDatabase(): Promise<void> {
-  const isPostgres =
+export function isPostgresDb(): boolean {
+  return (
     env.DATABASE_URL?.startsWith('postgres://') ||
-    env.DATABASE_URL?.startsWith('postgresql://');
+    env.DATABASE_URL?.startsWith('postgresql://') ||
+    false
+  );
+}
+
+export async function initDatabase(): Promise<void> {
+  const isPostgres = isPostgresDb();
 
   if (!isPostgres) {
     console.warn(

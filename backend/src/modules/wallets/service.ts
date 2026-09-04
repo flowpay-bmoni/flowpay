@@ -1,4 +1,5 @@
 import { bmoniClient } from '../../bmoni/client.js';
+import { prisma, isPostgresDb } from '../../db/index.js';
 import type { OwnerProofChallenge, SmartWallet, WalletBalance } from '../../bmoni/types.js';
 
 export class WalletService {
@@ -24,7 +25,30 @@ export class WalletService {
       const wallets = await bmoniClient.listAccountSmartWallets(userId);
       if (wallets && wallets.length > 0) return wallets;
     } catch (err) {
-      console.warn('[WalletService] BMONI API getWallets fallback to sandbox defaults:', err);
+      console.warn('[WalletService] BMONI API getWallets fallback to database/sandbox:', err);
+    }
+
+    // Attempt database query from Supabase public.smart_wallets
+    if (isPostgresDb()) {
+      try {
+        const dbWallets = await prisma.smartWallet.findMany({
+          where: { userId },
+          orderBy: { createdAt: 'asc' },
+        });
+        if (dbWallets && dbWallets.length > 0) {
+          return dbWallets.map((w) => ({
+            id: w.id,
+            address: w.address,
+            currency: w.currency as any,
+            chain: w.chain,
+            status: w.status as any,
+            userOwnerAddress: w.userOwnerAddress,
+            createdAt: w.createdAt.toISOString(),
+          }));
+        }
+      } catch (dbErr) {
+        console.warn('[WalletService] Non-blocking DB getWallets notice:', (dbErr as any)?.message || dbErr);
+      }
     }
 
     return [
@@ -64,7 +88,31 @@ export class WalletService {
     ownerProofChallengeId: string;
     ownerProofSignature: string;
   }): Promise<SmartWallet> {
-    return bmoniClient.createManagedSmartWallet(args);
+    const wallet = await bmoniClient.createManagedSmartWallet(args);
+    if (isPostgresDb() && wallet?.address) {
+      try {
+        await prisma.smartWallet.upsert({
+          where: { id: wallet.id },
+          create: {
+            id: wallet.id,
+            bmoniWalletId: wallet.id,
+            userId: args.userId,
+            address: wallet.address,
+            userOwnerAddress: args.userOwnerAddress,
+            currency: args.currency,
+            chain: wallet.chain || 'base-sepolia',
+            status: wallet.status || 'active',
+          },
+          update: {
+            address: wallet.address,
+            status: wallet.status || 'active',
+          },
+        });
+      } catch (dbErr) {
+        console.warn('[WalletService] Non-blocking DB wallet creation notice:', (dbErr as any)?.message || dbErr);
+      }
+    }
+    return wallet;
   }
 
   static async getWalletDetail(walletId: string, userId: string): Promise<SmartWallet> {
