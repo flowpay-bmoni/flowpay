@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import '../../core/auth/account_capabilities.dart';
+import '../../core/auth/secure_storage_service.dart';
 import '../../core/config/api_config.dart';
 import '../../core/design_system/buttons.dart';
 import '../../core/design_system/input_fields.dart';
@@ -16,9 +17,7 @@ import 'login_screen.dart';
 /// Signup Screen: Allows selecting Personal vs Business account type,
 /// collecting identity details, setting up security PIN, and proceeding to KYC.
 class SignupScreen extends ConsumerStatefulWidget {
-  final VoidCallback? onBypassToDemo;
-
-  const SignupScreen({super.key, this.onBypassToDemo});
+  const SignupScreen({super.key});
 
   @override
   ConsumerState<SignupScreen> createState() => _SignupScreenState();
@@ -39,34 +38,24 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
 
   String _selectedCountry = 'NG';
 
-  final List<Map<String, String>> _countries = [
+  final List<Map<String, String>> _countries = const [
     {
       'code': 'NG',
-      'name': 'Nigeria 🇳🇬',
+      'name': 'Nigeria',
       'currency': 'NGN',
       'idLabel': 'BVN / NIN'
     },
     {
       'code': 'MX',
-      'name': 'Mexico 🇲🇽',
+      'name': 'Mexico',
       'currency': 'MXN',
       'idLabel': 'CURP / RFC'
     },
-    {
-      'code': 'US',
-      'name': 'United States 🇺🇸',
-      'currency': 'USD',
-      'idLabel': 'SSN / Tax ID'
-    },
-    {
-      'code': 'CA',
-      'name': 'Canada 🇨🇦',
-      'currency': 'CAD',
-      'idLabel': 'SIN / CRA Number'
-    },
+    {'code': 'US', 'name': 'United States', 'currency': 'USD', 'idLabel': 'SSN'},
+    {'code': 'CA', 'name': 'Canada', 'currency': 'CAD', 'idLabel': 'SIN'},
     {
       'code': 'GB',
-      'name': 'United Kingdom 🇬🇧',
+      'name': 'United Kingdom',
       'currency': 'GBP',
       'idLabel': 'National Insurance'
     },
@@ -81,29 +70,6 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     _companyRegController.dispose();
     _companyRoleController.dispose();
     super.dispose();
-  }
-
-  void _autofillPersonalDemo() {
-    setState(() {
-      _accountType = AccountType.personal;
-      _fullNameController.text = 'Bunch Dillon';
-      _emailController.text = 'bunch.dillon@remote.africa';
-      _phoneController.text = '+2348012345678';
-      _selectedCountry = 'NG';
-    });
-  }
-
-  void _autofillBusinessDemo() {
-    setState(() {
-      _accountType = AccountType.business;
-      _fullNameController.text = 'Waffiyyi Fashola';
-      _emailController.text = 'waffiyyi@flowpay.finance';
-      _phoneController.text = '+14155552671';
-      _selectedCountry = 'US';
-      _companyNameController.text = 'FlowPay Technologies Ltd';
-      _companyRegController.text = 'RC-8924190';
-      _companyRoleController.text = 'Founder & CEO';
-    });
   }
 
   void _submit() async {
@@ -130,21 +96,23 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
       createdAt: DateTime.now(),
     );
 
-    try {
-      await http.post(
-        Uri.parse('${ApiConfig.baseUrl}/api/auth/signup'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'fullName': profile.fullName,
-          'email': profile.email,
-          'accountType': profile.accountType.name,
-          'country': profile.country,
-          'phone': profile.phone,
-          'companyName': profile.companyName,
-          'companyRole': profile.companyRole,
-        }),
-      ).timeout(const Duration(seconds: 3));
-    } catch (_) {}
+    if (!SecureStorageService.isTestEnv) {
+      try {
+        await http.post(
+          Uri.parse('${ApiConfig.baseUrl}/api/auth/signup'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'fullName': profile.fullName,
+            'email': profile.email,
+            'accountType': profile.accountType.name,
+            'country': profile.country,
+            'phone': profile.phone,
+            'companyName': profile.companyName,
+            'companyRole': profile.companyRole,
+          }),
+        ).timeout(const Duration(seconds: 3));
+      } catch (_) {}
+    }
 
     if (!mounted) return;
     Navigator.push(
@@ -424,76 +392,6 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                   const SizedBox(height: 14),
                 ],
 
-                const SizedBox(height: 20),
-
-                // Demo Autofill Shortcuts for Fast Hackathon Evaluation
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: FlowPayColors.surfaceAlt,
-                    borderRadius: FlowPayRadii.card,
-                    border: Border.all(color: FlowPayColors.hairline),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Row(
-                        children: [
-                          Icon(Icons.bolt,
-                              size: 14, color: FlowPayColors.amber),
-                          SizedBox(width: 4),
-                          Text(
-                            'Quick Autofill Persona',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: FlowPayColors.ink,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: OutlinedButton(
-                              style: OutlinedButton.styleFrom(
-                                side: const BorderSide(
-                                    color: FlowPayColors.hairline),
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 8),
-                              ),
-                              onPressed: _autofillPersonalDemo,
-                              child: const Text(
-                                '👤 Personal (Bunch)',
-                                style: TextStyle(
-                                    fontSize: 12, color: FlowPayColors.ink),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: OutlinedButton(
-                              style: OutlinedButton.styleFrom(
-                                side: const BorderSide(
-                                    color: FlowPayColors.hairline),
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 8),
-                              ),
-                              onPressed: _autofillBusinessDemo,
-                              child: const Text(
-                                '💼 Business (FlowPay)',
-                                style: TextStyle(
-                                    fontSize: 12, color: FlowPayColors.ink),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-
                 const SizedBox(height: 24),
 
                 // Submit Action
@@ -503,25 +401,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                   onPressed: _submit,
                 ),
 
-                const SizedBox(height: 14),
-
-                // Sandbox master bypass
-                if (widget.onBypassToDemo != null)
-                  TextButton.icon(
-                    onPressed: widget.onBypassToDemo,
-                    icon: const Icon(Icons.flash_on,
-                        size: 16, color: FlowPayColors.amber),
-                    label: const Text(
-                      'Skip to Sandbox Master',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: FlowPayColors.textSecondary,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-
-                const SizedBox(height: 8),
+                const SizedBox(height: 16),
 
                 // Already have account
                 Center(

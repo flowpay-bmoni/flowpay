@@ -73,6 +73,14 @@ class _BusinessShellState extends ConsumerState<BusinessShell> {
               ref.read(appLockStateProvider.notifier).lockApp();
             },
           ),
+          IconButton(
+            icon: const Icon(Icons.logout,
+                color: FlowPayColors.ink, size: 20),
+            tooltip: 'Log Out',
+            onPressed: () {
+              ref.read(appLockStateProvider.notifier).logout();
+            },
+          ),
           const SizedBox(width: 4),
         ],
       ),

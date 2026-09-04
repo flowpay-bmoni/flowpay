@@ -96,25 +96,28 @@ final accountCapabilitiesProvider =
   }
 
   // 3. Fetch fresh capabilities from FlowPay backend
-  try {
-    final bmoniUserId =
-        await storage.getBmoniUserId() ?? 'usr_flowpay_sandbox_master';
-    final uri = Uri.parse(
-        '${ApiConfig.baseUrl}/api/auth/capabilities?bmoniUserId=$bmoniUserId');
+  final bmoniUserId = await storage.getBmoniUserId();
+  if (bmoniUserId != null && bmoniUserId.isNotEmpty) {
+    try {
+      final uri = Uri.parse(
+          '${ApiConfig.baseUrl}/api/auth/capabilities?bmoniUserId=$bmoniUserId');
 
-    final response = await http.get(uri).timeout(const Duration(seconds: 4));
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body) as Map<String, dynamic>;
-      final capabilities = AccountCapabilities.fromJson(data);
-      await storage.saveCapabilities(capabilities);
-      return capabilities;
+      final response = await http.get(uri).timeout(const Duration(seconds: 4));
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        final capabilities = AccountCapabilities.fromJson(data);
+        await storage.saveCapabilities(capabilities);
+        return capabilities;
+      }
+    } catch (_) {
+      // Network offline
     }
-  } catch (_) {
-    // Network or server offline; use deterministic capabilities
   }
 
-  // 4. Fallback: deterministic capabilities (both modes available in sandbox)
-  final fallback = AccountCapabilities.demo();
+  // 4. Default to personal capability for authenticated user
+  final fallback = AccountCapabilities.personalOnly(
+    bmoniUserId: bmoniUserId ?? 'user_unauthenticated',
+  );
   await storage.saveCapabilities(fallback);
   return fallback;
 });
@@ -131,6 +134,7 @@ class AppLockState {
   final bool hasFaceId;
   final bool hasFingerprint;
   final bool isAuthExpired;
+  final bool hasSession;
 
   const AppLockState({
     required this.isLocked,
@@ -143,6 +147,7 @@ class AppLockState {
     this.hasFaceId = false,
     this.hasFingerprint = false,
     this.isAuthExpired = false,
+    this.hasSession = false,
   });
 
   AppLockState copyWith({
@@ -156,6 +161,7 @@ class AppLockState {
     bool? hasFaceId,
     bool? hasFingerprint,
     bool? isAuthExpired,
+    bool? hasSession,
   }) {
     return AppLockState(
       isLocked: isLocked ?? this.isLocked,
@@ -168,6 +174,7 @@ class AppLockState {
       hasFaceId: hasFaceId ?? this.hasFaceId,
       hasFingerprint: hasFingerprint ?? this.hasFingerprint,
       isAuthExpired: isAuthExpired ?? this.isAuthExpired,
+      hasSession: hasSession ?? this.hasSession,
     );
   }
 }
@@ -189,6 +196,7 @@ class AppLockNotifier extends StateNotifier<AppLockState> {
   }
 
   Future<void> _initialize() async {
+    final hasSession = await _storage.hasSession();
     final canAuth = await _appLockService.canAuthenticate();
     final hasFace = await _appLockService.hasFaceId();
     final hasFinger = await _appLockService.hasFingerprint();
@@ -201,10 +209,24 @@ class AppLockNotifier extends StateNotifier<AppLockState> {
       _ref.read(currentAccountModeProvider.notifier).state = storedMode;
     }
 
+    if (!hasSession) {
+      state = state.copyWith(
+        isLocked: true,
+        hasSession: false,
+        isSupported: canAuth,
+        activeMode: storedMode ?? AccountMode.personal,
+        biometricLabel: bioLabel,
+        hasFaceId: hasFace,
+        hasFingerprint: hasFinger,
+      );
+      return;
+    }
+
     if (!isLockEnabled && !isExpired) {
       // User disabled app lock in settings and session active
       state = state.copyWith(
         isLocked: false,
+        hasSession: true,
         isSupported: canAuth,
         activeMode: storedMode ?? AccountMode.personal,
         biometricLabel: bioLabel,
@@ -217,6 +239,7 @@ class AppLockNotifier extends StateNotifier<AppLockState> {
 
     state = state.copyWith(
       isLocked: true,
+      hasSession: true,
       isSupported: canAuth,
       showFallbackPin:
           !canAuth, // If no biometrics on device, show fallback PIN immediately
@@ -314,14 +337,19 @@ class AppLockNotifier extends StateNotifier<AppLockState> {
     await _storage.saveAccountMode(mode);
   }
 
-  /// Reset to signup flow (for testing or switching accounts)
+  /// Reset to signup flow / log out (switch accounts)
   Future<void> resetToSignup() async {
     await _storage.resetSession();
-    _ref.read(currentUserProfileProvider.notifier).clearProfile();
-    state = state.copyWith(isLocked: true);
+    await _ref.read(currentUserProfileProvider.notifier).clearProfile();
+    state = state.copyWith(isLocked: true, hasSession: false);
   }
 
-  /// Direct login as a specific persona (e.g. personal, business, or demo master)
+  /// Log out of active session
+  Future<void> logout() async {
+    await resetToSignup();
+  }
+
+  /// Direct login as authenticated user profile
   Future<void> loginAsPersona(UserProfile profile, {String? pin}) async {
     await _storage.saveUserProfile(profile);
     await _storage.setKycCompleted(true);
@@ -334,7 +362,7 @@ class AppLockNotifier extends StateNotifier<AppLockState> {
     await setAccountMode(mode);
     await _ref.read(currentUserProfileProvider.notifier).saveProfile(profile);
     await _ref.read(currentUserProfileProvider.notifier).setKycVerified();
-    state = state.copyWith(isLocked: false, activeMode: mode);
+    state = state.copyWith(isLocked: false, hasSession: true, activeMode: mode);
   }
 }
 

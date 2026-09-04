@@ -1,15 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flowpay_mobile/app.dart';
+import 'package:flowpay_mobile/core/auth/secure_storage_service.dart';
+import 'package:flowpay_mobile/core/design_system/input_fields.dart';
 import 'package:flowpay_mobile/core/state/app_state.dart';
 import 'package:flowpay_mobile/modules/auth/signup_screen.dart';
 import 'package:flowpay_mobile/modules/auth/kyc_screen.dart';
 import 'package:flowpay_mobile/modules/auth/set_pin_screen.dart';
 import 'package:flowpay_mobile/modules/auth/login_screen.dart';
 
+Future<void> enterField(WidgetTester tester, String label, String value) async {
+  final field = find.descendant(
+    of: find.widgetWithText(FlowPayTextField, label),
+    matching: find.byType(TextField),
+  );
+  await tester.enterText(field, value);
+}
+
 void main() {
+  setUp(() {
+    SecureStorageService.resetMemoryCacheForTesting();
+  });
+
   group('Signup, KYC and Account Separation Tests', () {
-    testWidgets('Opens SignupScreen from lock screen and renders form controls',
+    testWidgets('Opens SignupScreen from LoginScreen and renders form controls',
         (tester) async {
       tester.view.physicalSize = const Size(800, 1600);
       tester.view.devicePixelRatio = 1.0;
@@ -20,12 +34,12 @@ void main() {
       await tester.pumpWidget(FlowPayApp(appState: appState));
       await tester.pumpAndSettle();
 
-      // App starts locked behind AppAuthGate
-      expect(find.text('FlowPay is Locked'), findsOneWidget);
-      expect(find.text('Create New Account / Sign Up'), findsOneWidget);
+      // App starts unauthenticated on LoginScreen
+      expect(find.byType(LoginScreen), findsOneWidget);
+      expect(find.text("Don't have an account? Sign Up"), findsOneWidget);
 
       // Tap Create New Account
-      await tester.tap(find.text('Create New Account / Sign Up'));
+      await tester.tap(find.text("Don't have an account? Sign Up"));
       await tester.pumpAndSettle();
 
       // Verify on SignupScreen
@@ -36,7 +50,7 @@ void main() {
       expect(find.text('Proceed to Identity Verification'), findsOneWidget);
     });
 
-    testWidgets('Personal signup autofill and navigation to KYC screen',
+    testWidgets('Personal signup input and navigation to KYC screen',
         (tester) async {
       tester.view.physicalSize = const Size(800, 1600);
       tester.view.devicePixelRatio = 1.0;
@@ -47,15 +61,14 @@ void main() {
       await tester.pumpWidget(FlowPayApp(appState: appState));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Create New Account / Sign Up'));
+      await tester.tap(find.text("Don't have an account? Sign Up"));
       await tester.pumpAndSettle();
 
-      // Tap Quick Personal Demo Autofill (Bunch Dillon)
-      await tester.tap(find.text('👤 Personal (Bunch)'));
+      // Fill personal form fields
+      await enterField(tester, 'Full Legal Name', 'Alice Wonderland');
+      await enterField(tester, 'Personal Email', 'alice@example.com');
+      await enterField(tester, 'Phone Number', '+2348011223344');
       await tester.pumpAndSettle();
-
-      expect(find.text('Bunch Dillon'), findsOneWidget);
-      expect(find.text('bunch.dillon@remote.africa'), findsOneWidget);
 
       // Proceed to Identity Verification
       await tester.tap(find.text('Proceed to Identity Verification'));
@@ -81,15 +94,24 @@ void main() {
       await tester.pumpWidget(FlowPayApp(appState: appState));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Create New Account / Sign Up'));
+      await tester.tap(find.text("Don't have an account? Sign Up"));
       await tester.pumpAndSettle();
 
-      // Autofill personal
-      await tester.tap(find.text('👤 Personal (Bunch)'));
+      // Fill personal form fields
+      await enterField(tester, 'Full Legal Name', 'Alice Wonderland');
+      await enterField(tester, 'Personal Email', 'alice@example.com');
+      await enterField(tester, 'Phone Number', '+2348011223344');
       await tester.pumpAndSettle();
 
       // Proceed to KYC
       await tester.tap(find.text('Proceed to Identity Verification'));
+      await tester.pumpAndSettle();
+
+      // Fill KYC fields
+      await enterField(
+          tester, 'Bank Verification Number (BVN) / NIN', '12345678901');
+      await enterField(tester, 'Date of Birth (YYYY-MM-DD)', '1995-05-15');
+      await enterField(tester, 'Residential Address', '10 Marina Road, Lagos');
       await tester.pumpAndSettle();
 
       // Run facial scan
@@ -122,7 +144,7 @@ void main() {
       }
       await tester.pumpAndSettle();
 
-      // Should now be in PersonalShell with Personal-only title badge
+      // Should now be in PersonalShell
       expect(find.text('Personal Account'), findsWidgets);
       final navBar = find.byType(NavigationBar);
       expect(find.descendant(of: navBar, matching: find.text('Overview')),
@@ -134,7 +156,7 @@ void main() {
     });
 
     testWidgets(
-        'Business signup autofill, corporate KYB, Set PIN, and strict Business Shell landing',
+        'Business signup input, corporate KYB, Set PIN, and strict Business Shell landing',
         (tester) async {
       tester.view.physicalSize = const Size(800, 1600);
       tester.view.devicePixelRatio = 1.0;
@@ -145,15 +167,22 @@ void main() {
       await tester.pumpWidget(FlowPayApp(appState: appState));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Create New Account / Sign Up'));
+      await tester.tap(find.text("Don't have an account? Sign Up"));
       await tester.pumpAndSettle();
 
-      // Tap Quick Business Demo Autofill (FlowPay Global Ltd)
-      await tester.tap(find.text('💼 Business (FlowPay)'));
+      // Select Business
+      await tester.tap(find.text('Business'));
       await tester.pumpAndSettle();
 
-      expect(find.text('FlowPay Technologies Ltd'), findsOneWidget);
-      expect(find.text('Founder & CEO'), findsOneWidget);
+      // Fill business signup fields
+      await enterField(tester, 'Full Legal Name', 'Bob Founder');
+      await enterField(tester, 'Work Email', 'bob@acme.com');
+      await enterField(tester, 'Phone Number', '+2348099887766');
+      await enterField(
+          tester, 'Registered Company Name', 'Acme Technologies Ltd');
+      await enterField(tester, 'Registration / Tax Number', 'RC-9988776');
+      await enterField(tester, 'Your Company Role', 'Founder & CEO');
+      await tester.pumpAndSettle();
 
       // Proceed to Corporate KYB
       await tester.tap(find.text('Proceed to Identity Verification'));
@@ -166,6 +195,15 @@ void main() {
       expect(find.text('Step 2: Authorized Signatory Verification'),
           findsOneWidget);
       expect(find.text('Disbursement Rails Activated'), findsOneWidget);
+
+      // Fill KYB fields
+      await enterField(
+          tester, 'Corporate Tax ID / RFC / EIN', 'TIN-11223344');
+      await enterField(
+          tester, 'Registered Business Office Address', 'Plot 5, Victoria Island, Lagos');
+      await enterField(
+          tester, 'Authorized Officer Identity / BVN', 'SIG-998877');
+      await tester.pumpAndSettle();
 
       // Submit Corporate Verification & proceed to Set PIN
       await tester.tap(find.text('Activate Rails & Set PIN'));
@@ -186,14 +224,14 @@ void main() {
       }
       await tester.pumpAndSettle();
 
-      // Should now be in BusinessShell with Business-only company title badge
+      // Should now be in BusinessShell with Business navigation
       expect(find.text('Dashboard'), findsOneWidget);
       expect(find.text('Team'), findsOneWidget);
       expect(find.text('Payroll'), findsOneWidget);
       expect(find.text('Audit'), findsOneWidget);
     });
 
-    testWidgets('Opens LoginScreen and logs in via email and PIN',
+    testWidgets('Logs in via email and PIN from LoginScreen',
         (tester) async {
       tester.view.physicalSize = const Size(800, 1600);
       tester.view.devicePixelRatio = 1.0;
@@ -204,21 +242,18 @@ void main() {
       await tester.pumpWidget(FlowPayApp(appState: appState));
       await tester.pumpAndSettle();
 
-      // On Lock Screen, tap Log In to Existing Account
-      expect(find.text('Log In to Existing Account'), findsOneWidget);
-      await tester.tap(find.text('Log In to Existing Account'));
-      await tester.pumpAndSettle();
-
+      // Starts on LoginScreen
       expect(find.byType(LoginScreen), findsOneWidget);
       expect(find.text('Log In to FlowPay'), findsOneWidget);
 
-      // Quick autofill personal
-      await tester.tap(find.text('👤 Personal'));
+      // Enter login credentials into the two TextFields on LoginScreen
+      final textFields = find.byType(TextField);
+      await tester.enterText(textFields.at(0), 'user@flowpay.finance');
+      await tester.enterText(textFields.at(1), '123456');
       await tester.pumpAndSettle();
 
       // Tap Log In
       await tester.tap(find.text('Log In'));
-      await tester.pump(const Duration(milliseconds: 300));
       await tester.pumpAndSettle();
 
       // Lands in Personal shell

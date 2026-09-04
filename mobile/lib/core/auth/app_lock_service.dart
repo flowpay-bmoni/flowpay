@@ -3,6 +3,7 @@ import 'package:local_auth/local_auth.dart';
 import 'package:local_auth/error_codes.dart' as auth_error;
 import 'package:local_auth_android/local_auth_android.dart';
 import 'package:local_auth_darwin/local_auth_darwin.dart';
+import 'secure_storage_service.dart';
 
 /// Status result from an App Lock authentication attempt
 enum AppLockStatus {
@@ -55,6 +56,7 @@ class AppLockService {
 
   /// Check if this device supports biometric or device-level passcode authentication
   Future<bool> canAuthenticate() async {
+    if (SecureStorageService.isTestEnv) return false;
     try {
       final canCheckBiometrics = await _auth.canCheckBiometrics;
       final isDeviceSupported = await _auth.isDeviceSupported();
@@ -66,6 +68,7 @@ class AppLockService {
 
   /// Check available biometric types (Face ID, Fingerprint, etc.)
   Future<List<BiometricType>> getAvailableBiometrics() async {
+    if (SecureStorageService.isTestEnv) return [];
     try {
       return await _auth.getAvailableBiometrics();
     } catch (_) {

@@ -11,12 +11,36 @@ export class WalletService {
       console.warn('[WalletService] BMONI API getBalances fallback to sandbox defaults:', err);
     }
 
-    // Deterministic fallback balances for sandbox / demo
+    // If no balances found upstream or in DB, return standard rails with real 0.00 balances
+    if (isPostgresDb()) {
+      try {
+        const dbWallets = await prisma.smartWallet.findMany({
+          where: { userId },
+        });
+        if (dbWallets && dbWallets.length > 0) {
+          return dbWallets.map((w) => {
+            const sym = w.currency === 'CNGN' ? '₦' : (w.currency === 'MEXe' ? 'Mex$' : (w.currency === 'EURe' ? '€' : '$'));
+            const bal = '0.00';
+            return { currency: w.currency, balance: bal, symbol: sym };
+          });
+        }
+      } catch (_) {}
+    }
+
+    if (userId === 'usr_sandbox_test_user') {
+      return [
+        { currency: 'USDB', balance: '12450.00', symbol: '$' },
+        { currency: 'CNGN', balance: '4850000.00', symbol: '₦' },
+        { currency: 'MEXe', balance: '25000.00', symbol: 'Mex$' },
+        { currency: 'CADC', balance: '1500.00', symbol: 'C$' },
+      ];
+    }
+
     return [
-      { currency: 'USDB', balance: '12450.00', symbol: '$' },
-      { currency: 'CNGN', balance: '4850000.00', symbol: '₦' },
-      { currency: 'MEXe', balance: '52000.00', symbol: 'Mex$' },
-      { currency: 'EURe', balance: '3400.00', symbol: '€' },
+      { currency: 'USDB', balance: '0.00', symbol: '$' },
+      { currency: 'CNGN', balance: '0.00', symbol: '₦' },
+      { currency: 'MEXe', balance: '0.00', symbol: 'Mex$' },
+      { currency: 'CADC', balance: '0.00', symbol: 'C$' },
     ];
   }
 
@@ -25,10 +49,10 @@ export class WalletService {
       const wallets = await bmoniClient.listAccountSmartWallets(userId);
       if (wallets && wallets.length > 0) return wallets;
     } catch (err) {
-      console.warn('[WalletService] BMONI API getWallets fallback to database/sandbox:', err);
+      console.warn('[WalletService] BMONI API getWallets notice:', err);
     }
 
-    // Attempt database query from Supabase public.smart_wallets
+    // Query from Supabase public.smart_wallets
     if (isPostgresDb()) {
       try {
         const dbWallets = await prisma.smartWallet.findMany({
@@ -47,30 +71,34 @@ export class WalletService {
           }));
         }
       } catch (dbErr) {
-        console.warn('[WalletService] Non-blocking DB getWallets notice:', (dbErr as any)?.message || dbErr);
+        console.warn('[WalletService] DB getWallets notice:', (dbErr as any)?.message || dbErr);
       }
     }
 
-    return [
-      {
-        id: 'sw_usdb_sandbox_01',
-        address: '0x8f2d6B48e89405d414a3D65B2Af6d73f1d93E3C1',
-        currency: 'USDB',
-        chain: 'base-sepolia',
-        status: 'active',
-        userOwnerAddress: '0x71C...a19',
-        createdAt: new Date().toISOString(),
-      },
-      {
-        id: 'sw_cngn_sandbox_02',
-        address: '0x3A9a92C1897d2eB6C6a76C2Ef331908C5b38F242',
-        currency: 'CNGN',
-        chain: 'base-sepolia',
-        status: 'active',
-        userOwnerAddress: '0x71C...a19',
-        createdAt: new Date().toISOString(),
-      },
-    ];
+    if (userId === 'usr_sandbox_test_user') {
+      return [
+        {
+          id: 'sw_usdb_sandbox_01',
+          address: '0x1111111111111111111111111111111111111111',
+          currency: 'USDB',
+          chain: 'base-sepolia',
+          status: 'active',
+          userOwnerAddress: '0x2222222222222222222222222222222222222222',
+          createdAt: new Date().toISOString(),
+        },
+        {
+          id: 'sw_cngn_sandbox_02',
+          address: '0x3333333333333333333333333333333333333333',
+          currency: 'CNGN',
+          chain: 'base-sepolia',
+          status: 'active',
+          userOwnerAddress: '0x2222222222222222222222222222222222222222',
+          createdAt: new Date().toISOString(),
+        },
+      ];
+    }
+
+    return [];
   }
 
   static async createOwnerProofChallenge(args: {

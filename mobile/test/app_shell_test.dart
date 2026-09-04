@@ -4,9 +4,17 @@ import 'package:flowpay_mobile/app.dart';
 import 'package:flowpay_mobile/core/state/app_state.dart';
 import 'package:flowpay_mobile/core/theme/components.dart';
 
+import 'package:flowpay_mobile/core/auth/account_capabilities.dart';
+import 'package:flowpay_mobile/core/auth/secure_storage_service.dart';
+
 Future<void> unlockApp(WidgetTester tester) async {
-  await tester.tap(find.text('Quick Unlock (Passcode: 123456)'));
-  await tester.pumpAndSettle();
+  if (find.text('FlowPay is Locked').evaluate().isNotEmpty) {
+    final pinField = find.byType(TextField);
+    if (pinField.evaluate().isNotEmpty) {
+      await tester.enterText(pinField, '112233');
+      await tester.pumpAndSettle();
+    }
+  }
 
   if (find.text('Select Account Mode').evaluate().isNotEmpty) {
     await tester.tap(find.text('Continue in Personal Mode'));
@@ -15,6 +23,28 @@ Future<void> unlockApp(WidgetTester tester) async {
 }
 
 void main() {
+  setUp(() async {
+    SecureStorageService.resetMemoryCacheForTesting();
+    final storage = SecureStorageService();
+    await storage.saveUserProfile(
+      UserProfile(
+        userId: 'test-user-id',
+        email: 'test@flowpay.finance',
+        fullName: 'Test User',
+        country: 'Nigeria',
+        phone: '+2348012345678',
+        accountType: AccountType.personal,
+        kycStatus: KycStatus.verified,
+        createdAt: DateTime(2025, 1, 1),
+      ),
+    );
+    await storage.saveCapabilities(
+      AccountCapabilities.demo(),
+    );
+    await storage.setFallbackPin('112233');
+    await storage.setAppLockEnabled(true);
+  });
+
   group('FlowPay Application Shell & Auth Gate Tests', () {
     testWidgets(
         'Initializes behind AppAuthGate and unlocks into Personal Shell',
@@ -26,9 +56,9 @@ void main() {
 
       // App starts locked behind AppAuthGate
       expect(find.text('FlowPay is Locked'), findsOneWidget);
-      expect(find.text('Quick Unlock (Passcode: 123456)'), findsOneWidget);
+      expect(find.text('Enter 6-Digit PIN'), findsOneWidget);
 
-      // Perform Demo Quick Unlock
+      // Perform PIN Unlock
       await unlockApp(tester);
 
       // Now unlocked into Personal Shell

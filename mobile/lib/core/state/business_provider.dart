@@ -87,8 +87,6 @@ class BusinessProvider extends ChangeNotifier {
     for (final emp in _employees) {
       if (emp.usdPayrollAmount != null) {
         totalMinor += emp.usdPayrollAmount!.minorUnits;
-      } else {
-        totalMinor += 200000; // $2,000 baseline in minor units
       }
     }
     return Money.fromMinor(totalMinor, Currency.usd);
