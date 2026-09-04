@@ -52,3 +52,7 @@ yarn-error.log*
 .gradle/
 **/.gradle/
 **/build/
+
+# Pitch deck & presentation exports
+deck/
+*.pdf
