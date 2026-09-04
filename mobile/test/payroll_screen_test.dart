@@ -8,6 +8,11 @@ void main() {
     testWidgets(
         'Renders global payroll header, core message, and aggregate bill',
         (tester) async {
+      tester.view.physicalSize = const Size(800, 1600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
       final appState = AppState();
 
       await tester.pumpWidget(

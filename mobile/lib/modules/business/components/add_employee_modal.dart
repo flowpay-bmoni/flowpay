@@ -221,17 +221,21 @@ class _AddEmployeeModalState extends State<AddEmployeeModal> {
   Widget build(BuildContext context) {
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
 
-    return Container(
-      decoration: const BoxDecoration(
-        color: FlowPayColors.surface,
-        borderRadius: FlowPayRadii.sheet,
-      ),
-      padding: EdgeInsets.only(
-        left: 20,
-        right: 20,
-        top: 20,
-        bottom: bottomInset + 24,
-      ),
+    return SafeArea(
+      child: Container(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.9,
+        ),
+        decoration: const BoxDecoration(
+          color: FlowPayColors.surface,
+          borderRadius: FlowPayRadii.sheet,
+        ),
+        padding: EdgeInsets.only(
+          left: 20,
+          right: 20,
+          top: 20,
+          bottom: bottomInset + 24,
+        ),
       child: Form(
         key: _formKey,
         child: SingleChildScrollView(
@@ -447,6 +451,7 @@ class _AddEmployeeModalState extends State<AddEmployeeModal> {
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }

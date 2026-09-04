@@ -152,118 +152,134 @@ class _SetPinScreenState extends ConsumerState<SetPinScreen> {
         centerTitle: true,
       ),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 20),
-          child: Column(
-            children: [
-              const SizedBox(height: 16),
-
-              // Hero Security Icon
-              Container(
-                width: 64,
-                height: 64,
-                decoration: BoxDecoration(
-                  color: FlowPayColors.surfaceAlt,
-                  borderRadius: FlowPayRadii.card,
-                  border: Border.all(color: FlowPayColors.hairline),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: constraints.maxHeight,
                 ),
-                child: const Icon(
-                  Icons.shield_outlined,
-                  size: 32,
-                  color: FlowPayColors.primary,
-                ),
-              ),
-              const SizedBox(height: 20),
+                child: IntrinsicHeight(
+                  child: Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 28, vertical: 20),
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 16),
 
-              // Title & Instructions
-              Text(
-                _isConfirming
-                    ? 'Confirm Your 6-Digit PIN'
-                    : 'Set Your 6-Digit PIN',
-                style: FlowPayTypography.headline(),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                _isConfirming
-                    ? 'Re-enter your 6-digit PIN to verify and encrypt your B-Key signer.'
-                    : 'This PIN authorizes transfers, payroll disbursements, and unlocks FlowPay.',
-                style: const TextStyle(
-                  fontSize: 13,
-                  color: FlowPayColors.textSecondary,
-                  height: 1.4,
-                ),
-                textAlign: TextAlign.center,
-              ),
+                        // Hero Security Icon
+                        Container(
+                          width: 64,
+                          height: 64,
+                          decoration: BoxDecoration(
+                            color: FlowPayColors.surfaceAlt,
+                            borderRadius: FlowPayRadii.card,
+                            border: Border.all(color: FlowPayColors.hairline),
+                          ),
+                          child: const Icon(
+                            Icons.shield_outlined,
+                            size: 32,
+                            color: FlowPayColors.primary,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
 
-              const SizedBox(height: 32),
+                        // Title & Instructions
+                        Text(
+                          _isConfirming
+                              ? 'Confirm Your 6-Digit PIN'
+                              : 'Set Your 6-Digit PIN',
+                          style: FlowPayTypography.headline(),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          _isConfirming
+                              ? 'Re-enter your 6-digit PIN to verify and encrypt your B-Key signer.'
+                              : 'This PIN authorizes transfers, payroll disbursements, and unlocks FlowPay.',
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: FlowPayColors.textSecondary,
+                            height: 1.4,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
 
-              // 6 PIN Dots
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(6, (index) {
-                  final isFilled = index < activePin.length;
-                  return AnimatedContainer(
-                    duration: const Duration(milliseconds: 150),
-                    margin: const EdgeInsets.symmetric(horizontal: 10),
-                    width: 16,
-                    height: 16,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color:
-                          isFilled ? FlowPayColors.primary : Colors.transparent,
-                      border: Border.all(
-                        color: isFilled
-                            ? FlowPayColors.primary
-                            : FlowPayColors.hairline,
-                        width: 2,
-                      ),
+                        const SizedBox(height: 32),
+
+                        // 6 PIN Dots
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: List.generate(6, (index) {
+                            final isFilled = index < activePin.length;
+                            return AnimatedContainer(
+                              duration: const Duration(milliseconds: 150),
+                              margin: const EdgeInsets.symmetric(horizontal: 10),
+                              width: 16,
+                              height: 16,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: isFilled
+                                    ? FlowPayColors.primary
+                                    : Colors.transparent,
+                                border: Border.all(
+                                  color: isFilled
+                                      ? FlowPayColors.primary
+                                      : FlowPayColors.hairline,
+                                  width: 2,
+                                ),
+                              ),
+                            );
+                          }),
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        // Error banner
+                        if (_errorMessage != null)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 14, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: FlowPayColors.stateError.withAlpha(30),
+                              borderRadius: FlowPayRadii.chip,
+                              border: Border.all(color: FlowPayColors.stateError),
+                            ),
+                            child: Text(
+                              _errorMessage!,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: FlowPayColors.stateError,
+                              ),
+                            ),
+                          ),
+
+                        if (_isSettingUp) ...[
+                          const Spacer(),
+                          const CircularProgressIndicator(
+                              color: FlowPayColors.primary),
+                          const SizedBox(height: 12),
+                          const Text(
+                            'Provisioning B-Key hardware keypair...',
+                            style: TextStyle(
+                                fontSize: 13, color: FlowPayColors.textSecondary),
+                          ),
+                          const Spacer(),
+                        ] else ...[
+                          const Spacer(),
+
+                          // Custom Numeric Keypad
+                          _buildKeypad(),
+                          const SizedBox(height: 12),
+                        ],
+                      ],
                     ),
-                  );
-                }),
+                  ),
+                ),
               ),
-
-              const SizedBox(height: 16),
-
-              // Error banner
-              if (_errorMessage != null)
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: FlowPayColors.stateError.withAlpha(30),
-                    borderRadius: FlowPayRadii.chip,
-                    border: Border.all(color: FlowPayColors.stateError),
-                  ),
-                  child: Text(
-                    _errorMessage!,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: FlowPayColors.stateError,
-                    ),
-                  ),
-                ),
-
-              if (_isSettingUp) ...[
-                const Spacer(),
-                const CircularProgressIndicator(color: FlowPayColors.primary),
-                const SizedBox(height: 12),
-                const Text(
-                  'Provisioning B-Key hardware keypair...',
-                  style: TextStyle(
-                      fontSize: 13, color: FlowPayColors.textSecondary),
-                ),
-                const Spacer(),
-              ] else ...[
-                const Spacer(),
-
-                // Custom Numeric Keypad
-                _buildKeypad(),
-                const SizedBox(height: 12),
-              ],
-            ],
-          ),
+            );
+          },
         ),
       ),
     );
@@ -298,24 +314,28 @@ class _SetPinScreenState extends ConsumerState<SetPinScreen> {
   }
 
   Widget _buildKey(String label, {required VoidCallback onTap}) {
-    return InkResponse(
-      onTap: onTap,
-      radius: 36,
-      child: Container(
-        width: 72,
-        height: 72,
-        decoration: BoxDecoration(
-          color: FlowPayColors.surfaceAlt,
-          shape: BoxShape.circle,
-          border: Border.all(color: FlowPayColors.hairline),
-        ),
-        alignment: Alignment.center,
-        child: Text(
-          label,
-          style: const TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.w600,
-            color: FlowPayColors.ink,
+    return Semantics(
+      button: true,
+      label: 'Digit $label',
+      child: InkResponse(
+        onTap: onTap,
+        radius: 36,
+        child: Container(
+          width: 72,
+          height: 72,
+          decoration: BoxDecoration(
+            color: FlowPayColors.surfaceAlt,
+            shape: BoxShape.circle,
+            border: Border.all(color: FlowPayColors.hairline),
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            label,
+            style: const TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.w600,
+              color: FlowPayColors.ink,
+            ),
           ),
         ),
       ),
@@ -323,22 +343,26 @@ class _SetPinScreenState extends ConsumerState<SetPinScreen> {
   }
 
   Widget _buildBackspaceKey() {
-    return InkResponse(
-      onTap: _onBackspace,
-      radius: 36,
-      child: Container(
-        width: 72,
-        height: 72,
-        decoration: BoxDecoration(
-          color: FlowPayColors.surfaceAlt,
-          shape: BoxShape.circle,
-          border: Border.all(color: FlowPayColors.hairline),
-        ),
-        alignment: Alignment.center,
-        child: const Icon(
-          Icons.backspace_outlined,
-          color: FlowPayColors.ink,
-          size: 22,
+    return Semantics(
+      button: true,
+      label: 'Backspace',
+      child: InkResponse(
+        onTap: _onBackspace,
+        radius: 36,
+        child: Container(
+          width: 72,
+          height: 72,
+          decoration: BoxDecoration(
+            color: FlowPayColors.surfaceAlt,
+            shape: BoxShape.circle,
+            border: Border.all(color: FlowPayColors.hairline),
+          ),
+          alignment: Alignment.center,
+          child: const Icon(
+            Icons.backspace_outlined,
+            color: FlowPayColors.ink,
+            size: 22,
+          ),
         ),
       ),
     );

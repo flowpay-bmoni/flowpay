@@ -208,6 +208,8 @@ class BmoniSdkService {
 
     try {
       return await BmoniEmbeddedSdk.signMessage(message, pin: pin);
+    } on BmoniSignerException {
+      rethrow;
     } catch (_) {
       final hash = sha256.convert(utf8.encode('$message:$pin')).toString();
       return '0x${hash}1b';
@@ -234,6 +236,8 @@ class BmoniSdkService {
 
     try {
       return await BmoniEmbeddedSdk.signTransactionHash(hash32, pin: pin);
+    } on BmoniSignerException {
+      rethrow;
     } catch (_) {
       final hash = sha256
           .convert(utf8.encode('$hash32:${_cachedAddress ?? ""}:$pin'))

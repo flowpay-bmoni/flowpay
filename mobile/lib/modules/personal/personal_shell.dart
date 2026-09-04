@@ -57,23 +57,26 @@ class _PersonalShellState extends ConsumerState<PersonalShell> {
         scrolledUnderElevation: 0,
         elevation: 0,
         title: hasBothModes
-            ? Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Revolut-style Segmented Role Switch
-                  SegmentedRoleSwitch(
-                    isPersonal: true,
-                    onRoleChanged: (isPersonal) {
-                      ref.read(appLockStateProvider.notifier).setAccountMode(
-                            isPersonal
-                                ? AccountMode.personal
-                                : AccountMode.business,
-                          );
-                    },
-                  ),
-                  const SizedBox(width: 8),
-                  const PoweredByBmoniBadge(),
-                ],
+            ? FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Revolut-style Segmented Role Switch
+                    SegmentedRoleSwitch(
+                      isPersonal: true,
+                      onRoleChanged: (isPersonal) {
+                        ref.read(appLockStateProvider.notifier).setAccountMode(
+                              isPersonal
+                                  ? AccountMode.personal
+                                  : AccountMode.business,
+                            );
+                      },
+                    ),
+                    const SizedBox(width: 8),
+                    const PoweredByBmoniBadge(),
+                  ],
+                ),
               )
             : const PoweredByBmoniBadge(),
         centerTitle: true,

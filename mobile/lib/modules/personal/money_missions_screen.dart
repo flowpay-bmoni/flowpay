@@ -430,37 +430,119 @@ class _MoneyMissionsScreenState extends State<MoneyMissionsScreen> {
             child: ListView(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               children: [
-                // 1. Primary Heading & Tagline
-                Text(
-                  'Tell your money what to do.',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -0.5,
-                    color: isDark ? BMoniColors.grey50 : BMoniColors.grey950,
-                  ),
+                // 1. Financial Command Center Header & Telemetry
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'What should your money do?',
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: -0.5,
+                              color: isDark ? BMoniColors.grey50 : BMoniColors.grey950,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          const Text(
+                            'Tell your money what to do.',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              color: BMoniColors.brand300,
+                              letterSpacing: 0.2,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Set autonomous directives in plain English. FlowPay structures the rules; execution is strictly gated behind your on-device B-Key PIN.',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: isDark ? BMoniColors.grey400 : BMoniColors.grey600,
+                              height: 1.4,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 6),
-                const Text(
-                  'Your money. Your rules. AI executes.',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: BMoniColors.brand300,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Set autonomous directives in plain English. FlowPay structures the plan; execution is strictly gated behind your on-device B-Key PIN.',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: isDark ? BMoniColors.grey400 : BMoniColors.grey600,
-                    height: 1.4,
-                  ),
-                ),
-                const SizedBox(height: 18),
+                const SizedBox(height: 12),
 
-                // 2. Large Natural-Language Input
+                // Command Center Live Telemetry Bar
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: isDark ? BMoniColors.offbrand900 : BMoniColors.grey100,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isDark ? BMoniColors.offbrand700 : BMoniColors.grey300,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            width: 7,
+                            height: 7,
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: BMoniColors.success400,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Engine: Active',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: isDark ? BMoniColors.grey200 : BMoniColors.grey800,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          const Icon(Icons.shield_outlined,
+                              size: 13, color: BMoniColors.brand400),
+                          const SizedBox(width: 4),
+                          Text(
+                            'B-Key Guard',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: isDark ? BMoniColors.grey300 : BMoniColors.grey700,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          const Icon(Icons.bolt,
+                              size: 13, color: BMoniColors.accent400),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Deterministic',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: isDark ? BMoniColors.grey300 : BMoniColors.grey700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // 2. Financial Command Center Console (Command Directive Input)
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
@@ -487,6 +569,46 @@ class _MoneyMissionsScreenState extends State<MoneyMissionsScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: BMoniColors.brand500.withAlpha(30),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: const Row(
+                              children: [
+                                Icon(Icons.terminal_rounded,
+                                    size: 12, color: BMoniColors.brand400),
+                                SizedBox(width: 4),
+                                Text(
+                                  'COMMAND DIRECTIVE',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: 0.8,
+                                    color: BMoniColors.brand400,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Text(
+                            'Your money. Your rules. AI executes.',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                              color: isDark
+                                  ? BMoniColors.grey400
+                                  : BMoniColors.grey600,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
                       TextField(
                         controller: _inputController,
                         maxLines: 3,
@@ -515,18 +637,27 @@ class _MoneyMissionsScreenState extends State<MoneyMissionsScreen> {
                       const SizedBox(height: 14),
 
                       // Submit Directive Button
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: BMoniButton(
-                          text: isInterpreting
-                              ? 'Structuring Plan...'
-                              : 'Interpret Directive',
-                          icon: Icons.auto_awesome,
-                          variant: BMoniButtonVariant.primary,
-                          size: BMoniButtonSize.medium,
-                          isLoading: isInterpreting,
-                          onPressed: isInterpreting ? null : _handleInterpret,
-                        ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Strictly PIN-authorized on BMONI',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: isDark ? BMoniColors.grey400 : BMoniColors.grey600,
+                            ),
+                          ),
+                          BMoniButton(
+                            text: isInterpreting
+                                ? 'Structuring Plan...'
+                                : 'Interpret Directive',
+                            icon: Icons.auto_awesome,
+                            variant: BMoniButtonVariant.primary,
+                            size: BMoniButtonSize.medium,
+                            isLoading: isInterpreting,
+                            onPressed: isInterpreting ? null : _handleInterpret,
+                          ),
+                        ],
                       ),
                     ],
                   ),

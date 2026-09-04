@@ -213,17 +213,22 @@ class _IssueVirtualCardSheetState extends State<IssueVirtualCardSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(
-        left: 20,
-        right: 20,
-        top: 16,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 28,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+    return SafeArea(
+      child: Container(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.9,
+        ),
+        padding: EdgeInsets.only(
+          left: 20,
+          right: 20,
+          top: 16,
+          bottom: MediaQuery.of(context).viewInsets.bottom + 28,
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
           // Drag Handle
           Center(
             child: Container(
@@ -502,6 +507,8 @@ class _IssueVirtualCardSheetState extends State<IssueVirtualCardSheet> {
           ),
         ],
       ),
-    );
-  }
+    ),
+  ),
+);
+}
 }

@@ -146,21 +146,26 @@ class _WalletPinAuthSheetState extends State<WalletPinAuthSheet> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: isDark ? FlowPayColors.canvas : BMoniColors.grey50,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        border: Border.all(color: FlowPayColors.hairline),
-      ),
-      padding: EdgeInsets.only(
-        left: 24,
-        right: 24,
-        top: 16,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
+    return SafeArea(
+      child: Container(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.9,
+        ),
+        decoration: BoxDecoration(
+          color: isDark ? FlowPayColors.canvas : BMoniColors.grey50,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          border: Border.all(color: FlowPayColors.hairline),
+        ),
+        padding: EdgeInsets.only(
+          left: 24,
+          right: 24,
+          top: 16,
+          bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
           // Drag handle
           Center(
             child: Container(
@@ -336,8 +341,10 @@ class _WalletPinAuthSheetState extends State<WalletPinAuthSheet> {
           ],
         ],
       ),
-    );
-  }
+    ),
+  ),
+);
+}
 
   Widget _buildKeypad() {
     return Column(

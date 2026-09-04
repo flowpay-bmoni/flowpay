@@ -35,10 +35,11 @@ class MissionPreviewModal extends StatelessWidget {
           width: 1.2,
         ),
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
           // Drag Handle
           Center(
             child: Container(
@@ -381,6 +382,7 @@ class MissionPreviewModal extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 }
