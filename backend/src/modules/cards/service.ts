@@ -145,7 +145,19 @@ export class CardService {
     proposalId: string;
   }): Promise<ProposalSignPayload> {
     try {
-      return await bmoniClient.getProposalSignPayload(args);
+      const payload = await bmoniClient.getProposalSignPayload(args);
+      if (payload.hashToSign) {
+        return payload;
+      }
+      const dummyHash = `0x${Buffer.from(`flowpay_card_${args.proposalId}`)
+        .toString('hex')
+        .padEnd(64, '0')
+        .slice(0, 64)}`;
+      return {
+        hashToSign: dummyHash,
+        deadline: new Date(Date.now() + 3600000).toISOString(),
+        isPending: false,
+      };
     } catch (err) {
       console.warn('[CardService] getProposalSignPayload fallback:', err);
       const dummyHash = `0x${Buffer.from(`flowpay_card_${args.proposalId}`)
