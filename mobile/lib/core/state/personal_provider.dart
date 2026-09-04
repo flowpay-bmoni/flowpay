@@ -68,7 +68,7 @@ class PersonalProvider extends ChangeNotifier {
     if (pw != null && pw.currency == Currency.usd) {
       return pw.balance;
     }
-    return Money.fromMajorString('24500.00', Currency.usd);
+    return Money.zero(Currency.usd);
   }
 
   /// Aggregate multi-currency portfolio valuation in USD.
@@ -79,7 +79,7 @@ class PersonalProvider extends ChangeNotifier {
   /// - CADC (CAD): 1.375 CAD per USD
   Money get totalPortfolioUsd {
     if (_wallets.isEmpty) {
-      return Money.fromMajorString('37671.43', Currency.usd);
+      return Money.zero(Currency.usd);
     }
 
     int totalUsdCents = 0;

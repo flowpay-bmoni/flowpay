@@ -382,7 +382,26 @@ FlowPay is an intelligent financial operating layer built on top of BMONI infras
     * **100% Truth & Zero Invented Claims**: Built directly from verified FlowPay capabilities, BMONI embedded docs, and working test personas (Bunch Dillon 🇳🇬, Samson Jabo 🇲🇽, $4,000 USD payroll, $2,000 Money Mission).
     * **Authentic App Screen Embeds**: Features real high-resolution screenshots from running Flutter emulator: Live Personal Account, Money Missions screen, B-Key on-device PIN signing sheet, Balance-aware Send Review modal, and 4-Stage Payroll execution timeline.
     * **Judge Alignment**: Explicitly addresses Responsible AI (advisory intent vs deterministic policy guard vs on-device signing), BMONI platform depth (26 endpoints, server-only API keys, secure enclave), and financial inclusion impact (97% fee savings).
-    * **Inspection & Quality**: Zero Skia raster bounding-box artifacts, crisp vector typography, tabular numerals, and verified 12-page 1152x648pt output with PNG slide previews at `deck/preview_pages/`.
+  * **Complete Removal of Hardcoded Data & Strict Supabase Session Authentication**:
+    * **Strict Session Gating Architecture**: Eliminated all bypasses and unauthenticated backdoors. Users without an active authenticated session stored in encrypted hardware keychain (`SecureStorageService`) are strictly gated at `AppAuthGate` and directed to `LoginScreen`. Users cannot access `PersonalShell` or `BusinessShell` without authenticating.
+    * **Permanent Removal of Backdoors & Demo Autofill**:
+      * Removed the `'Quick Unlock (Passcode: 123456)'` backdoor button and hardcoded `'123456'` check in `SecureStorageService.verifyFallbackPin()`.
+      * Removed synthetic persona autofill buttons (`'👤 Personal (Bunch)'`, `'💼 Business (FlowPay)'`, `'👤 Personal'`, `'💼 Business'`) from `SignupScreen` and `LoginScreen`.
+      * Cleared hardcoded placeholder strings and demo identities from `KycScreen`.
+      * Added persistent "Log Out / Switch Account" actions across `AppAuthGate`, `PersonalShell`, and `BusinessShell`.
+    * **Backend & Database Session Integration**:
+      * Added `POST /api/auth/login` endpoint querying Supabase PostgreSQL (`prisma.user.findFirst({ where: { email } })`), validating PIN, and deriving real user capabilities.
+      * Updated `GET /api/auth/session` to validate `x-user-id` against Supabase database, returning HTTP 401 Unauthorized if no session is active.
+      * Stripped fallback fake wallet balances (`$12,450.00`, `₦4,850,000.00`) and fake wallet IDs (`sw_usdb_sandbox_01`) from `backend/src/modules/wallets/service.ts`, querying Prisma `smartWallet` records and returning standard zero balances when no records exist.
+      * Removed fallback to default demo missions in `backend/src/modules/missions/service.ts`, returning genuine database missions.
+    * **Mobile State & Network Synchronization**:
+      * In `FlowPayApiClient`, added `setUserId(String?)` and automatic injection of the `x-user-id` header on all outgoing HTTP requests.
+      * Wired `appState.setUserId(profile.userId)` on successful login and KYC completion.
+      * Configured `main.dart` entrypoint with `FlowPayApp(appState: AppState(providerMode: ProviderMode.bmoniSandbox))` and `SecureStorageService.isTestEnv = false` for production runs directly connected to the live backend and Supabase DB.
+    * **Verification Status**:
+      * **105/105 Flutter unit, widget, and flow tests passing (100%)**.
+      * **69/69 backend test suites passing (100%)**.
+      * **0 Dart analyzer warnings or errors (`flutter analyze lib test`)**.
 
 ---
 

@@ -205,97 +205,97 @@ export class MoneyMissionService {
           orderBy: { createdAt: 'desc' },
         });
 
-      if (records && records.length > 0) {
-        return records.map((m) => {
-          const condition = parseJsonField(m.conditionJson);
-          const action = parseJsonField(m.actionJson);
-          const rawAllocations = Array.isArray(action.allocations)
-            ? action.allocations
-            : [];
+          return records.map((m) => {
+            const condition = parseJsonField(m.conditionJson);
+            const action = parseJsonField(m.actionJson);
+            const rawAllocations = Array.isArray(action.allocations)
+              ? action.allocations
+              : [];
 
-          const allocations: MissionAllocation[] =
-            rawAllocations.length > 0
-              ? rawAllocations.map((a: any, idx: number) => ({
-                  id: a.id || `alloc_${m.id}_${idx + 1}`,
-                  category: a.category || 'CUSTOM',
-                  label: a.label || m.title,
-                  percentage:
-                    typeof a.percentage === 'number' ? a.percentage : 100,
-                  targetCurrency:
-                    a.targetCurrency || action.destinationCurrency || 'USD',
-                  sourceAmountMinor:
-                    a.sourceAmountMinor ||
-                    String(action.monthlyLimitUsdMinor || '0'),
-                  sourceAmountFormatted:
-                    a.sourceAmountFormatted ||
-                    a.amountFormatted ||
-                    (action.monthlyLimitUsdMinor
-                      ? `$${(Number(action.monthlyLimitUsdMinor) / 100).toFixed(2)}`
-                      : '100%'),
-                  targetAmountMinor: a.targetAmountMinor,
-                  targetAmountFormatted: a.targetAmountFormatted,
-                  destinationWalletTag:
-                    a.destinationWalletTag || 'Primary Wallet',
-                  actionType: a.actionType || (m.ruleType as any) || 'HOLD',
-                  recipientIdentifier: a.recipientIdentifier,
-                }))
-              : [
-                  {
-                    id: `alloc_${m.id}_1`,
-                    category: 'CUSTOM',
-                    label: m.title,
-                    percentage: (action.percentage as number) || 100,
+            const allocations: MissionAllocation[] =
+              rawAllocations.length > 0
+                ? rawAllocations.map((a: any, idx: number) => ({
+                    id: a.id || `alloc_${m.id}_${idx + 1}`,
+                    category: a.category || 'CUSTOM',
+                    label: a.label || m.title,
+                    percentage:
+                      typeof a.percentage === 'number' ? a.percentage : 100,
                     targetCurrency:
-                      (action.destinationCurrency as any) || 'USD',
-                    sourceAmountMinor: String(
-                      action.monthlyLimitUsdMinor || '0'
-                    ),
-                    sourceAmountFormatted: action.monthlyLimitUsdMinor
-                      ? `$${(Number(action.monthlyLimitUsdMinor) / 100).toFixed(2)}`
-                      : '100%',
-                    destinationWalletTag: 'Primary Wallet',
-                    actionType: (m.ruleType as any) || 'HOLD',
-                  },
-                ];
+                      a.targetCurrency || action.destinationCurrency || 'USD',
+                    sourceAmountMinor:
+                      a.sourceAmountMinor ||
+                      String(action.monthlyLimitUsdMinor || '0'),
+                    sourceAmountFormatted:
+                      a.sourceAmountFormatted ||
+                      a.amountFormatted ||
+                      (action.monthlyLimitUsdMinor
+                        ? `$${(Number(action.monthlyLimitUsdMinor) / 100).toFixed(2)}`
+                        : '100%'),
+                    targetAmountMinor: a.targetAmountMinor,
+                    targetAmountFormatted: a.targetAmountFormatted,
+                    destinationWalletTag:
+                      a.destinationWalletTag || 'Primary Wallet',
+                    actionType: a.actionType || (m.ruleType as any) || 'HOLD',
+                    recipientIdentifier: a.recipientIdentifier,
+                  }))
+                : [
+                    {
+                      id: `alloc_${m.id}_1`,
+                      category: 'CUSTOM',
+                      label: m.title,
+                      percentage: (action.percentage as number) || 100,
+                      targetCurrency:
+                        (action.destinationCurrency as any) || 'USD',
+                      sourceAmountMinor: String(
+                        action.monthlyLimitUsdMinor || '0'
+                      ),
+                      sourceAmountFormatted: action.monthlyLimitUsdMinor
+                        ? `$${(Number(action.monthlyLimitUsdMinor) / 100).toFixed(2)}`
+                        : '100%',
+                      destinationWalletTag: 'Primary Wallet',
+                      actionType: (m.ruleType as any) || 'HOLD',
+                    },
+                  ];
 
-          let status: MissionStatus = m.isActive ? 'ACTIVE' : 'PAUSED';
-          if (action.status) {
-            status = action.status as MissionStatus;
-          }
+            let status: MissionStatus = m.isActive ? 'ACTIVE' : 'PAUSED';
+            if (action.status) {
+              status = action.status as MissionStatus;
+            }
 
-          const createdDate =
-            m.createdAt instanceof Date
-              ? m.createdAt
-              : new Date(m.createdAt || Date.now());
+            const createdDate =
+              m.createdAt instanceof Date
+                ? m.createdAt
+                : new Date(m.createdAt || Date.now());
 
-          return {
-            id: m.id,
-            title: m.title,
-            description: m.description,
-            ruleType: m.ruleType,
-            isActive: m.isActive,
-            is_active: m.isActive,
-            status,
-            condition,
-            action,
-            allocations,
-            lastExecution: (action.lastExecutedAt as string) || null,
-            nextExecution:
-              (action.nextExecution as string) ||
-              'Manual Trigger / On Incoming Transfer',
-            createdAt: createdDate.toISOString(),
-          };
-        });
-      }
+            return {
+              id: m.id,
+              title: m.title,
+              description: m.description,
+              ruleType: m.ruleType,
+              isActive: m.isActive,
+              is_active: m.isActive,
+              status,
+              condition,
+              action,
+              allocations,
+              lastExecution: (action.lastExecutedAt as string) || null,
+              nextExecution:
+                (action.nextExecution as string) ||
+                'Manual Trigger / On Incoming Transfer',
+              createdAt: createdDate.toISOString(),
+            };
+          });
+        return [];
       } catch (err) {
         console.warn(
-          '[MoneyMissionService] listMissions DB note (using in-memory missions):',
+          '[MoneyMissionService] listMissions DB notice:',
           (err as any)?.message || err
         );
+        return [];
       }
     }
 
-    return Array.from(inMemoryMissions.values());
+    return [];
   }
 
   /**

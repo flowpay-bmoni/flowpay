@@ -7,11 +7,16 @@ import 'package:flowpay_mobile/core/money/currency.dart';
 import 'package:flowpay_mobile/core/state/app_state.dart';
 import 'package:flowpay_mobile/modules/personal/personal_shell.dart';
 
+import 'package:flowpay_mobile/core/auth/account_capabilities.dart';
+import 'package:flowpay_mobile/core/auth/secure_storage_service.dart';
+
 Future<void> _unlockApp(WidgetTester tester) async {
-  final unlockBtn = find.text('Quick Unlock (Passcode: 123456)');
-  if (unlockBtn.evaluate().isNotEmpty) {
-    await tester.tap(unlockBtn);
-    await tester.pumpAndSettle();
+  if (find.text('FlowPay is Locked').evaluate().isNotEmpty) {
+    final pinField = find.byType(TextField);
+    if (pinField.evaluate().isNotEmpty) {
+      await tester.enterText(pinField, '112233');
+      await tester.pumpAndSettle();
+    }
   }
 
   final continuePersonal = find.text('Continue in Personal Mode');
@@ -40,6 +45,28 @@ Future<void> _enterPin(WidgetTester tester) async {
 }
 
 void main() {
+  setUp(() async {
+    SecureStorageService.resetMemoryCacheForTesting();
+    final storage = SecureStorageService();
+    await storage.saveUserProfile(
+      UserProfile(
+        userId: 'test-user-id',
+        email: 'test@flowpay.finance',
+        fullName: 'Test User',
+        country: 'Nigeria',
+        phone: '+2348012345678',
+        accountType: AccountType.personal,
+        kycStatus: KycStatus.verified,
+        createdAt: DateTime(2025, 1, 1),
+      ),
+    );
+    await storage.saveCapabilities(
+      AccountCapabilities.demo(),
+    );
+    await storage.setFallbackPin('112233');
+    await storage.setAppLockEnabled(true);
+  });
+
   group('FlowPay Personal End-to-End Feature Integration Tests', () {
     testWidgets(
         'Journey 1: Open FlowPay -> Wallet Exists -> Balances Visible -> Bottom Nav & Quick Actions Switch Tabs',
@@ -61,7 +88,7 @@ void main() {
       // 2. Personal Shell loaded, initial tab is Dashboard (Overview)
       expect(find.byType(PersonalShell), findsOneWidget);
       expect(find.text('Personal Account'), findsOneWidget);
-      expect(find.text('Self-Custody (B-Key)'), findsOneWidget);
+      expect(find.text('B-Key Vault'), findsOneWidget);
 
       // Verify wallet balances visible
       expect(find.text('Total Multi-Currency Portfolio'), findsOneWidget);

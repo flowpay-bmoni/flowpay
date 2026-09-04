@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../state/app_state.dart';
 import '../theme/colors.dart';
 import '../theme/components.dart';
 import '../theme/radii.dart';
@@ -15,11 +16,13 @@ import '../../modules/auth/login_screen.dart';
 class AppAuthGate extends ConsumerStatefulWidget {
   final Widget personalShell;
   final Widget businessShell;
+  final AppState? appState;
 
   const AppAuthGate({
     super.key,
     required this.personalShell,
     required this.businessShell,
+    this.appState,
   });
 
   @override
@@ -89,12 +92,22 @@ class _AppAuthGateState extends ConsumerState<AppAuthGate>
   Widget build(BuildContext context) {
     final lockState = ref.watch(appLockStateProvider);
 
-    // 1. App is Locked -> Show Unlock Screen
+    // 1. User has no active authenticated session -> Absolutely no app entry. Show Login.
+    if (!lockState.hasSession) {
+      return const LoginScreen();
+    }
+
+    // 2. App is Locked -> Show Unlock Screen
     if (lockState.isLocked) {
       return _buildLockScreen(context, lockState);
     }
 
-    // 2. App is Unlocked -> Resolve Capabilities & Shell
+    // 3. App is Unlocked & Session Active -> Resolve Capabilities & Shell
+    final profile = ref.watch(currentUserProfileProvider);
+    if (profile != null) {
+      widget.appState?.setUserId(profile.userId);
+    }
+
     final capabilitiesAsync = ref.watch(accountCapabilitiesProvider);
 
     return capabilitiesAsync.when(
@@ -340,14 +353,7 @@ class _AppAuthGateState extends ConsumerState<AppAuthGate>
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => SignupScreen(
-                        onBypassToDemo: () {
-                          Navigator.pop(context);
-                          ref
-                              .read(appLockStateProvider.notifier)
-                              .verifyFallbackPin('123456');
-                        },
-                      ),
+                      builder: (_) => const SignupScreen(),
                     ),
                   );
                 },
@@ -355,31 +361,20 @@ class _AppAuthGateState extends ConsumerState<AppAuthGate>
 
               const SizedBox(height: 12),
 
-              // Quick Unlock Bypass
-              GestureDetector(
-                onTap: () {
-                  ref
-                      .read(appLockStateProvider.notifier)
-                      .verifyFallbackPin('123456');
-                },
-                child: const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 8),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.bolt, size: 14, color: FlowPayColors.amber),
-                      SizedBox(width: 4),
-                      Text(
-                        'Quick Unlock (Passcode: 123456)',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: FlowPayColors.ink,
-                        ),
-                      ),
-                    ],
+              // Log Out / Switch Account
+              TextButton.icon(
+                icon: const Icon(Icons.logout, size: 15, color: FlowPayColors.textSecondary),
+                label: const Text(
+                  'Log Out / Switch Account',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: FlowPayColors.textSecondary,
                   ),
                 ),
+                onPressed: () {
+                  ref.read(appLockStateProvider.notifier).logout();
+                },
               ),
             ],
           ),

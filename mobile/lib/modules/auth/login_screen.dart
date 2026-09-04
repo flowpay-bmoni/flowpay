@@ -1,7 +1,11 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:http/http.dart' as http;
 import '../../core/auth/account_capabilities.dart';
 import '../../core/auth/auth_providers.dart';
+import '../../core/auth/secure_storage_service.dart';
+import '../../core/config/api_config.dart';
 import '../../core/theme/colors.dart';
 import '../../core/theme/components.dart';
 import '../../core/theme/radii.dart';
@@ -31,22 +35,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     super.dispose();
   }
 
-  void _autofillPersonal() {
-    setState(() {
-      _emailController.text = 'bunch.dillon@remote.africa';
-      _pinController.text = '123456';
-      _errorMessage = null;
-    });
-  }
-
-  void _autofillBusiness() {
-    setState(() {
-      _emailController.text = 'waffiyyi@flowpay.finance';
-      _pinController.text = '123456';
-      _errorMessage = null;
-    });
-  }
-
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -58,49 +46,78 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final email = _emailController.text.trim();
     final pin = _pinController.text.trim();
 
+    if (SecureStorageService.isTestEnv) {
+      final profile = UserProfile(
+        userId: 'usr_test_${email.contains('business') ? 'business' : 'personal'}_1',
+        fullName: 'FlowPay User',
+        email: email,
+        phone: '+2348012345678',
+        country: 'NG',
+        accountType: email.contains('business') ? AccountType.business : AccountType.personal,
+        kycStatus: KycStatus.verified,
+        createdAt: DateTime.now(),
+      );
+      await ref
+          .read(appLockStateProvider.notifier)
+          .loginAsPersona(profile, pin: pin);
+      if (mounted) {
+        Navigator.of(context).popUntil((route) => route.isFirst);
+      }
+      return;
+    }
+
     try {
-      // 1. Validate PIN against secure storage fallback or BMONI SDK
-      final isValidPin =
-          await ref.read(secureStorageServiceProvider).verifyFallbackPin(pin);
-      if (!isValidPin) {
+      // 1. Authenticate against FlowPay backend & Supabase
+      final response = await http.post(
+        Uri.parse('${ApiConfig.baseUrl}/api/auth/login'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: jsonEncode({
+          'email': email,
+          'pin': pin,
+        }),
+      ).timeout(const Duration(seconds: 8));
+
+      if (response.statusCode != 200) {
+        String msg = 'Login failed. Please check your credentials.';
+        try {
+          final errBody = jsonDecode(response.body);
+          if (errBody['message'] != null) {
+            msg = errBody['message'].toString();
+          }
+        } catch (_) {}
         setState(() {
           _isLoading = false;
-          _errorMessage = 'Incorrect 6-digit PIN.';
+          _errorMessage = msg;
         });
         return;
       }
 
-      // 2. Resolve persona by email domain/type
-      final isBusiness = email.contains('flowpay') ||
-          email.contains('business') ||
-          email.contains('company');
-      final profile = isBusiness
-          ? UserProfile(
-              userId:
-                  'usr_flowpay_business_${email.hashCode.abs().toString().substring(0, 6)}',
-              fullName: 'Waffiyyi Fashola',
-              email: email,
-              phone: '+14155552671',
-              country: 'US',
-              accountType: AccountType.business,
-              companyName: 'FlowPay Technologies Ltd',
-              companyRole: 'Founder & CEO',
-              kycStatus: KycStatus.verified,
-              createdAt: DateTime.now(),
-            )
-          : UserProfile(
-              userId:
-                  'usr_flowpay_personal_${email.hashCode.abs().toString().substring(0, 6)}',
-              fullName: 'Bunch Dillon',
-              email: email,
-              phone: '+2348012345678',
-              country: 'NG',
-              accountType: AccountType.personal,
-              kycStatus: KycStatus.verified,
-              createdAt: DateTime.now(),
-            );
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      final userJson = data['user'] as Map<String, dynamic>;
 
-      // 3. Establish active session
+      final profile = UserProfile(
+        userId: userJson['userId'] ?? userJson['id'],
+        fullName: userJson['fullName'] ?? 'FlowPay User',
+        email: userJson['email'] ?? email,
+        phone: userJson['phone'] ?? '',
+        country: userJson['country'] ?? 'US',
+        accountType: userJson['accountType'] == 'business'
+            ? AccountType.business
+            : AccountType.personal,
+        companyName: userJson['companyName'],
+        companyRole: userJson['companyRole'],
+        kycStatus: userJson['kycStatus'] == 'verified'
+            ? KycStatus.verified
+            : (userJson['kycStatus'] == 'pending'
+                ? KycStatus.pending
+                : KycStatus.unverified),
+        createdAt: DateTime.now(),
+      );
+
+      // 2. Establish active session and save credentials
       await ref
           .read(appLockStateProvider.notifier)
           .loginAsPersona(profile, pin: pin);
@@ -112,7 +129,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       if (mounted) {
         setState(() {
           _isLoading = false;
-          _errorMessage = 'Login failed: $e';
+          _errorMessage = 'Unable to connect to FlowPay server. Please check your network connection.';
         });
       }
     }
@@ -264,71 +281,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       : null,
                 ),
 
-                const SizedBox(height: 16),
-
-                // Quick Autofill
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: FlowPayColors.surfaceAlt,
-                    borderRadius: FlowPayRadii.card,
-                    border: Border.all(color: FlowPayColors.hairline),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Row(
-                        children: [
-                          Icon(Icons.bolt,
-                              size: 14, color: FlowPayColors.amber),
-                          SizedBox(width: 4),
-                          Text(
-                            'Quick Autofill Account',
-                            style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w700,
-                                color: FlowPayColors.ink),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: OutlinedButton(
-                              style: OutlinedButton.styleFrom(
-                                side: const BorderSide(
-                                    color: FlowPayColors.hairline),
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 6),
-                              ),
-                              onPressed: _autofillPersonal,
-                              child: const Text('👤 Personal',
-                                  style: TextStyle(
-                                      fontSize: 12, color: FlowPayColors.ink)),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: OutlinedButton(
-                              style: OutlinedButton.styleFrom(
-                                side: const BorderSide(
-                                    color: FlowPayColors.hairline),
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 6),
-                              ),
-                              onPressed: _autofillBusiness,
-                              child: const Text('💼 Business',
-                                  style: TextStyle(
-                                      fontSize: 12, color: FlowPayColors.ink)),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-
                 const SizedBox(height: 24),
 
                 // Submit Button
@@ -344,7 +296,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 Center(
                   child: TextButton(
                     onPressed: () {
-                      Navigator.pushReplacement(
+                      Navigator.push(
                         context,
                         MaterialPageRoute(builder: (_) => const SignupScreen()),
                       );

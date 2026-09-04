@@ -36,13 +36,13 @@ enum ProviderMode { demo, bmoniSandbox }
 
 class AppState extends ChangeNotifier {
   AppRole _activeRole = AppRole.personal;
-  ProviderMode _providerMode = ProviderMode.demo;
+  ProviderMode _providerMode;
   ThemeMode _themeMode = ThemeMode.dark;
   int _personalTabIndex = 0;
 
   final FlowPayApiClient _apiClient = FlowPayApiClient();
 
-  // Demo Repositories
+  // Demo Repositories (for isolated widget testing)
   final DemoWalletRepository _demoWallet = DemoWalletRepository();
   final DemoActivityRepository _demoActivity = DemoActivityRepository();
   late final DemoTransferRepository _demoTransfer = DemoTransferRepository(
@@ -65,7 +65,7 @@ class AppState extends ChangeNotifier {
     activityRepo: _demoActivity,
   );
 
-  // BMONI Live Repositories
+  // BMONI Live Repositories (connected to FlowPay backend & Supabase DB)
   late final BmoniWalletRepository _bmoniWallet =
       BmoniWalletRepository(apiClient: _apiClient);
   late final BmoniTransferRepository _bmoniTransfer =
@@ -124,6 +124,9 @@ class AppState extends ChangeNotifier {
     transferRepo: _bmoniTransfer,
   );
 
+  AppState({ProviderMode providerMode = ProviderMode.demo})
+      : _providerMode = providerMode;
+
   AppRole get activeRole => _activeRole;
   ProviderMode get providerMode => _providerMode;
   ThemeMode get themeMode => _themeMode;
@@ -131,7 +134,13 @@ class AppState extends ChangeNotifier {
   bool get isDarkMode => _themeMode == ThemeMode.dark;
   int get personalTabIndex => _personalTabIndex;
 
-  // Active Repositories conforming to shared interfaces
+  FlowPayApiClient get apiClient => _apiClient;
+
+  void setUserId(String? userId) {
+    _apiClient.setUserId(userId);
+  }
+
+  // Active Repositories
   WalletRepository get walletRepo => isDemo ? _demoWallet : _bmoniWallet;
   TransferRepository get transferRepo =>
       isDemo ? _demoTransfer : _bmoniTransfer;

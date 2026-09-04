@@ -52,6 +52,7 @@ class _FlowPayAppState extends State<FlowPayApp> {
       home: AppAuthGate(
         personalShell: PersonalShell(appState: _appState),
         businessShell: BusinessShell(appState: _appState),
+        appState: _appState,
       ),
     );
 

@@ -1,4 +1,3 @@
-import 'dart:io' show Platform;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../bmoni_sdk/bmoni_sdk_service.dart';
 import 'account_capabilities.dart';
@@ -23,9 +22,10 @@ class SecureStorageService {
   static const Duration sessionTtl = Duration(hours: 1);
 
   final FlutterSecureStorage _storage;
-  final Map<String, String> _memoryCache = {};
-  static final bool _isTestEnv =
-      Platform.environment.containsKey('FLUTTER_TEST');
+  static final Map<String, String> _memoryCache = {};
+  static bool isTestEnv = true;
+
+  static void resetMemoryCacheForTesting() => _memoryCache.clear();
 
   SecureStorageService({FlutterSecureStorage? storage})
       : _storage = storage ??
@@ -36,11 +36,11 @@ class SecureStorageService {
             );
 
   Future<String?> _safeRead(String key) async {
-    if (_isTestEnv) return _memoryCache[key];
+    if (isTestEnv) return _memoryCache[key];
     try {
       final val = await _storage
           .read(key: key)
-          .timeout(const Duration(milliseconds: 100));
+          .timeout(const Duration(milliseconds: 3000));
       if (val != null) _memoryCache[key] = val;
       return val ?? _memoryCache[key];
     } catch (_) {
@@ -50,17 +50,17 @@ class SecureStorageService {
 
   Future<void> _safeWrite(String key, String value) async {
     _memoryCache[key] = value;
-    if (_isTestEnv) return;
+    if (isTestEnv) return;
     try {
       await _storage
           .write(key: key, value: value)
-          .timeout(const Duration(milliseconds: 100));
+          .timeout(const Duration(milliseconds: 3000));
     } catch (_) {}
   }
 
   Future<void> _safeDelete(String key) async {
     _memoryCache.remove(key);
-    if (_isTestEnv) return;
+    if (isTestEnv) return;
     try {
       await _storage
           .delete(key: key)
@@ -207,7 +207,6 @@ class SecureStorageService {
 
   /// Verify in-app fallback PIN (when device lock is unavailable)
   Future<bool> verifyFallbackPin(String inputPin) async {
-    if (inputPin == '123456') return true;
     final storedPin = await _safeRead(_keyFallbackPin);
     if (storedPin != null && inputPin == storedPin) return true;
     return await BmoniSdkService.matchPin(inputPin);

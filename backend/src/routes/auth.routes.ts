@@ -65,7 +65,7 @@ async function resolveCapabilities(bmoniUserId: string) {
 
   const isPersonal = user ? user.accountType === 'personal' : bmoniUserId.includes('personal');
   const isBusiness = user ? user.accountType === 'business' : bmoniUserId.includes('business');
-  const isMaster = bmoniUserId === 'usr_flowpay_sandbox_master' || user?.accountType === 'both' || (!isPersonal && !isBusiness);
+  const isMaster = user?.accountType === 'both';
 
   if (isMaster) {
     return {
@@ -106,19 +106,123 @@ async function resolveCapabilities(bmoniUserId: string) {
   };
 }
 
-// Returns active sandbox session context for the mobile app
-authRouter.get('/session', (req, res) => {
+/**
+ * GET /api/auth/session
+ * Returns active session context for the authenticated mobile client.
+ */
+authRouter.get('/session', async (req, res) => {
+  const userId = (req.headers['x-user-id'] as string) || (req.query.userId as string);
+  if (!userId) {
+    return res.status(401).json({
+      authenticated: false,
+      message: 'No active session. Please log in.',
+    });
+  }
+
+  let user: RegisteredUser | undefined = registeredUsers.get(userId);
+
+  if (isPostgresDb() && !user) {
+    try {
+      const dbUser = await prisma.user.findFirst({
+        where: { OR: [{ id: userId }, { bmoniUserId: userId }] },
+      });
+      if (dbUser) {
+        user = {
+          userId: dbUser.id,
+          fullName: dbUser.fullName,
+          email: dbUser.email,
+          accountType: dbUser.accountType as any,
+          country: dbUser.country,
+          phone: dbUser.phoneNumber || '',
+          companyName: dbUser.companyName || undefined,
+          companyRole: dbUser.companyRole || undefined,
+          kycStatus: dbUser.kycStatus as any,
+          nationalId: dbUser.nationalId || undefined,
+        };
+        registeredUsers.set(userId, user);
+      }
+    } catch (_) {}
+  }
+
+  if (!user) {
+    return res.status(401).json({
+      authenticated: false,
+      message: 'Invalid session or user not found.',
+    });
+  }
+
+  const capabilities = await resolveCapabilities(user.userId);
+
   res.json({
     authenticated: true,
-    user: {
-      userId: 'usr_flowpay_sandbox_master',
-      name: 'Waffiyyi Fashola',
-      email: 'waffiyyi@flowpay.finance',
-      role: 'EMPLOYER_AND_PERSONAL',
-      defaultCurrency: 'USD',
-    },
-    sandbox: true,
-    bmoniPartnerId: 'b7e6a1d0-4f3c-4c2a-9e8b-1a2b3c4d5e6f',
+    user,
+    capabilities,
+  });
+});
+
+/**
+ * POST /api/auth/login
+ * Authenticates user by email and retrieves profile & capabilities from Supabase.
+ */
+authRouter.post('/login', async (req, res) => {
+  const { email } = req.body;
+  if (!email || typeof email !== 'string') {
+    return res.status(400).json({ success: false, message: 'Email is required' });
+  }
+
+  const normalizedEmail = email.trim().toLowerCase();
+  let user: RegisteredUser | undefined;
+
+  if (isPostgresDb()) {
+    try {
+      const dbUser = await prisma.user.findFirst({
+        where: { email: normalizedEmail },
+      });
+      if (dbUser) {
+        user = {
+          userId: dbUser.id,
+          fullName: dbUser.fullName,
+          email: dbUser.email,
+          accountType: dbUser.accountType as any,
+          country: dbUser.country,
+          phone: dbUser.phoneNumber || '',
+          companyName: dbUser.companyName || undefined,
+          companyRole: dbUser.companyRole || undefined,
+          kycStatus: dbUser.kycStatus as any,
+          nationalId: dbUser.nationalId || undefined,
+        };
+        registeredUsers.set(dbUser.id, user);
+        if (dbUser.bmoniUserId) registeredUsers.set(dbUser.bmoniUserId, user);
+      }
+    } catch (err: any) {
+      console.warn('[AuthRouter] DB user lookup notice:', err.message || err);
+    }
+  }
+
+  // Check in-memory fallback
+  if (!user) {
+    for (const u of registeredUsers.values()) {
+      if (u.email.toLowerCase() === normalizedEmail) {
+        user = u;
+        break;
+      }
+    }
+  }
+
+  if (!user) {
+    return res.status(404).json({
+      success: false,
+      message: `No account found with email "${email}". Please sign up first.`,
+    });
+  }
+
+  const capabilities = await resolveCapabilities(user.userId);
+
+  return res.json({
+    success: true,
+    user,
+    capabilities,
+    token: `flowpay_jwt_${user.userId}_${Date.now()}`,
   });
 });
 

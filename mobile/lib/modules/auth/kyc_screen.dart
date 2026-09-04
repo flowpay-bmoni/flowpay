@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import '../../core/auth/account_capabilities.dart';
 import '../../core/auth/auth_providers.dart';
+import '../../core/auth/secure_storage_service.dart';
 import '../../core/config/api_config.dart';
 import '../../core/design_system/buttons.dart';
 import '../../core/design_system/input_fields.dart';
@@ -32,18 +33,13 @@ class _KycScreenState extends ConsumerState<KycScreen> {
 
   // Personal Fields
   late final TextEditingController _nationalIdController;
-  final TextEditingController _dobController =
-      TextEditingController(text: '1992-04-18');
-  final TextEditingController _addressController =
-      TextEditingController(text: '14 Admiralty Way, Lekki Phase 1, Lagos');
+  final TextEditingController _dobController = TextEditingController();
+  final TextEditingController _addressController = TextEditingController();
 
   // Business Fields
-  final TextEditingController _taxIdController =
-      TextEditingController(text: 'TIN-99482014');
-  final TextEditingController _officeAddressController =
-      TextEditingController(text: '100 Financial District, Suite 400');
-  final TextEditingController _signatoryIdController =
-      TextEditingController(text: '99999999999');
+  final TextEditingController _taxIdController = TextEditingController();
+  final TextEditingController _officeAddressController = TextEditingController();
+  final TextEditingController _signatoryIdController = TextEditingController();
 
   bool _isScanningFace = false;
   bool _faceScanCompleted = false;
@@ -52,12 +48,7 @@ class _KycScreenState extends ConsumerState<KycScreen> {
   @override
   void initState() {
     super.initState();
-    final defaultId = widget.userProfile.country == 'NG'
-        ? '99999999999' // Sandbox BVN persona
-        : (widget.userProfile.country == 'MX'
-            ? 'CURP920418HDFR01'
-            : '987-65-4321');
-    _nationalIdController = TextEditingController(text: defaultId);
+    _nationalIdController = TextEditingController();
   }
 
   @override
@@ -123,23 +114,25 @@ class _KycScreenState extends ConsumerState<KycScreen> {
       );
 
       // 1. Notify FlowPay backend of KYC completion (with safe fallback)
-      try {
-        final uri = Uri.parse('${ApiConfig.baseUrl}/api/auth/kyc');
-        await http
-            .post(
-              uri,
-              headers: {'Content-Type': 'application/json'},
-              body: jsonEncode({
-                'userId': updatedProfile.userId,
-                'accountType': updatedProfile.accountType.name,
-                'nationalId': updatedProfile.nationalId,
-                'country': updatedProfile.country,
-                'status': 'VERIFIED',
-              }),
-            )
-            .timeout(const Duration(seconds: 3));
-      } catch (_) {
-        // Safe backend fallback
+      if (!SecureStorageService.isTestEnv) {
+        try {
+          final uri = Uri.parse('${ApiConfig.baseUrl}/api/auth/kyc');
+          await http
+              .post(
+                uri,
+                headers: {'Content-Type': 'application/json'},
+                body: jsonEncode({
+                  'userId': updatedProfile.userId,
+                  'accountType': updatedProfile.accountType.name,
+                  'nationalId': updatedProfile.nationalId,
+                  'country': updatedProfile.country,
+                  'status': 'VERIFIED',
+                }),
+              )
+              .timeout(const Duration(seconds: 3));
+        } catch (_) {
+          // Safe backend fallback
+        }
       }
 
       // 2. Persist verified profile to Secure Storage

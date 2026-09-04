@@ -8,9 +8,17 @@ import 'package:flowpay_mobile/modules/personal/components/ai_command_bar.dart';
 import 'package:flowpay_mobile/modules/personal/components/ai_fx_conversion_modal.dart';
 import 'package:flowpay_mobile/modules/personal/components/pending_approvals_card.dart';
 
+import 'package:flowpay_mobile/core/auth/account_capabilities.dart';
+import 'package:flowpay_mobile/core/auth/secure_storage_service.dart';
+
 Future<void> unlockIntoPersonal(WidgetTester tester) async {
-  await tester.tap(find.text('Quick Unlock (Passcode: 123456)'));
-  await tester.pumpAndSettle();
+  if (find.text('FlowPay is Locked').evaluate().isNotEmpty) {
+    final pinField = find.byType(TextField);
+    if (pinField.evaluate().isNotEmpty) {
+      await tester.enterText(pinField, '112233');
+      await tester.pumpAndSettle();
+    }
+  }
 
   if (find.text('Select Account Mode').evaluate().isNotEmpty) {
     await tester.tap(find.text('Continue in Personal Mode'));
@@ -19,6 +27,28 @@ Future<void> unlockIntoPersonal(WidgetTester tester) async {
 }
 
 void main() {
+  setUp(() async {
+    SecureStorageService.resetMemoryCacheForTesting();
+    final storage = SecureStorageService();
+    await storage.saveUserProfile(
+      UserProfile(
+        userId: 'test-user-id',
+        email: 'test@flowpay.finance',
+        fullName: 'Test User',
+        country: 'Nigeria',
+        phone: '+2348012345678',
+        accountType: AccountType.personal,
+        kycStatus: KycStatus.verified,
+        createdAt: DateTime(2025, 1, 1),
+      ),
+    );
+    await storage.saveCapabilities(
+      AccountCapabilities.demo(),
+    );
+    await storage.setFallbackPin('112233');
+    await storage.setAppLockEnabled(true);
+  });
+
   group('FlowPay Personal Dashboard Tests', () {
     testWidgets(
         'Renders complete Personal Financial Dashboard with all core sections',
@@ -38,7 +68,7 @@ void main() {
       expect(find.text('Personal Account'), findsWidgets);
       expect(find.text('Your money. Your rules. AI executes.'), findsWidgets);
       expect(find.text('Sandbox Demo'), findsOneWidget);
-      expect(find.text('Self-Custody (B-Key)'), findsOneWidget);
+      expect(find.text('B-Key Vault'), findsOneWidget);
 
       // 2. Portfolio Balance Section
       expect(find.text('Total Multi-Currency Portfolio'), findsOneWidget);
