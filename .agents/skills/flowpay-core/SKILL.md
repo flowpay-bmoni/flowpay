@@ -253,6 +253,25 @@ FlowPay is an intelligent financial operating layer built on top of BMONI infras
         * Verified dual employee onboarding workflows: Remote Self-Invite Flow (`SignupScreen` -> `KycScreen` -> `SetPinScreen` -> `linkEmployeeWallet`) and Employer-Assisted Portal (`EmployeeOnboardingScreen`).
       * **Backend KYC Sync**: Updated `/api/auth/kyc` to record `dateOfBirth`, `address`, `nationalIdType`, and `livenessVerified` status into PostgreSQL database with in-memory fallback.
       * **Verification**: 198/198 Flutter tests passing (100%), 118/118 backend tests passing (100%), and 0 analyzer lints.
+    * **Phase 18: Resilient Employee Identity Lifecycle, BMONI 409 Conflict Recovery, Salary Serialization & Onboarding Parity**:
+      * **BMONI 409 Conflict Recovery (`backend/src/modules/employees/service.ts`)**:
+        * Replaced unhandled `GET /v1/users` call in `recoverBmoniUserIdOnConflict` with a multi-layered identity resolution protocol: (1) parsing `details.bmoniUserId` / `details.userId` / `details.id` from HTTP 409 error payloads; (2) looking up existing accounts in user registry via `findUserByQuery`; (3) searching PostgreSQL `prisma.employee` and `prisma.user` records; (4) matching in-memory fallback store; and (5) safe query fallback.
+        * Updated `retryBmoniUserCreation` (Line 388): Enforces that 2xx responses lacking a user ID throw inside the `try` block, preventing silent `INVITED` state transitions without an on-chain/BMONI user ID; passes the caught exception into `recoverBmoniUserIdOnConflict`; reuses sanitized `effectivePhone` in E.164 format; and ensures `inMemoryEmployees` remains synced with `finalEmployee`.
+        * Implemented `buildEffectivePhone` helper to format local Nigerian (`080...` -> `+234...`), Mexican (`55...` -> `+52...`), and US/CA domestic numbers into strict E.164 required by BMONI `POST /v1/users`.
+      * **Invite Lifecycle & Security (`backend/src/modules/employees/service.ts`)**:
+        * `getInviteDetails`: Returns HTTP 410 `ALREADY_USED` when an employee is already linked/onboarded (`READY`, `LINKED`, `ACTIVE`), and HTTP 400 `EMPLOYEE_CREATION_FAILED` when the employee record is in `FAILED` state.
+        * `linkEmployeeWallet`: Added `findUserByQuery(reqUser)` session email matching to ensure sandbox and in-memory fallback modes do not reject valid employee sessions with 403 Forbidden.
+      * **Employee Routes & Amount Parsing (`backend/src/routes/employees.routes.ts`)**:
+        * Robust parsing of `payrollAmountMinor` whether passed as string or integer.
+        * Enriched `GET /api/employees` and `GET /api/employees/:id` with `failureReason` when `failedStage` is present.
+      * **Mobile Deserialization & UI Parity (`mobile/`)**:
+        * `EmployeeModel.fromJson` (`mobile/lib/core/repositories/employee_repository.dart`): Fixed critical deserialization bug where `payrollAmountMinor` was omitted (causing all backend employee salaries in the UI to default to `₦2,000.00` / `Mex$2,000.00`); added `payrollAmountMinor`, `usdPayrollAmountMinor`, and safe numeric casting (`(val as num).toInt()`).
+        * `BmoniEmployeeRepository` (`mobile/lib/core/providers/bmoni/bmoni_employee_repo.dart`): Added support for paginated responses (`res['data']['items']` / `res['items']`) and dynamic `ApiConfig.baseUrl` fallback for invite URLs.
+        * `EmployeeDetailScreen` (`mobile/lib/modules/business/employee_detail_screen.dart`): Updated `_retryOnboarding` to re-attempt Stage 1 identity creation via `businessProvider.retryEmployeeUserCreation(emp.id)` when `failedStage == 'BMONI_USER_CREATION'` or `bmoniUserId == null`.
+      * **Verification**:
+        * 122/122 backend tests passing across 11 test suites (`npm test`).
+        * 198/198 Flutter mobile tests passing (`flutter test`).
+        * 0 analyzer warnings/lints (`flutter analyze`).
     * `FlowPayTypography` with tabular monospaced numbers.
     * `FlowPaySpacing` with standard 8-point grid, presets, and border radii.
     * `FlowPayCard`, `FlowPayGlassCard`, `FlowPayStatCard`.

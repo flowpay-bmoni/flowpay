@@ -15,6 +15,7 @@ export interface RegisteredUser {
   companyRole?: string;
   kycStatus: 'unverified' | 'pending' | 'verified';
   nationalId?: string;
+  bmoniUserId?: string;
 }
 
 export const registeredUsers = new Map<string, RegisteredUser>();
