@@ -380,14 +380,14 @@ describe('Employee Management Validation & Lifecycle', () => {
       );
     });
 
-    it('preserves provided phone numbers as trimmed strings', () => {
+    it('normalizes domestic phone numbers to valid E.164 format', () => {
       assert.strictEqual(
         EmployeeService.buildEffectivePhone('08139088072', 'NG'),
-        '08139088072'
+        '+2348139088072'
       );
       assert.strictEqual(
         EmployeeService.buildEffectivePhone('5512345678', 'MX'),
-        '5512345678'
+        '+525512345678'
       );
     });
 
@@ -402,6 +402,81 @@ describe('Employee Management Validation & Lifecycle', () => {
 
       const usPhone = EmployeeService.buildEffectivePhone(null, 'US');
       assert.ok(usPhone.startsWith('+1415555'), `Expected +1415555..., got ${usPhone}`);
+    });
+  });
+
+  describe('409 Conflict User Recovery & Invite Lookup Lifecycle', () => {
+    it('recovers existing bmoniUserId directly from 409 error details', async () => {
+      const errorWithDetails = {
+        details: { bmoniUserId: 'usr_recovered_from_error_payload' },
+      };
+      const recovered = await EmployeeService.recoverBmoniUserIdOnConflict(
+        'conflict.test@flowpay.finance',
+        errorWithDetails
+      );
+      assert.strictEqual(recovered, 'usr_recovered_from_error_payload');
+    });
+
+    it('recovers existing bmoniUserId from in-memory employee record on conflict', async () => {
+      const { inMemoryEmployees } = await import('./service.js');
+      const testEmp = {
+        id: 'emp_in_memory_conflict',
+        email: 'inmem.conflict@flowpay.finance',
+        bmoniUserId: 'usr_recovered_from_inmem',
+        status: 'INVITED',
+      };
+      inMemoryEmployees.set(testEmp.id, testEmp);
+
+      const recovered = await EmployeeService.recoverBmoniUserIdOnConflict(
+        'inmem.conflict@flowpay.finance'
+      );
+      assert.strictEqual(recovered, 'usr_recovered_from_inmem');
+    });
+
+    it('returns 410 ALREADY_USED when employee was already onboarded and invite re-accessed', async () => {
+      const { inMemoryEmployees } = await import('./service.js');
+      const empId = `emp_already_ready_${Date.now()}`;
+      inMemoryEmployees.set(empId, {
+        id: empId,
+        email: 'already.ready@flowpay.finance',
+        firstName: 'Ready',
+        lastName: 'User',
+        status: 'READY',
+        bmoniUserId: 'usr_already_ready_1',
+      });
+
+      await assert.rejects(
+        async () => {
+          await EmployeeService.getInviteDetails(empId);
+        },
+        (err: any) => {
+          return err.statusCode === 410 && err.code === 'ALREADY_USED';
+        },
+        'Expected 410 ALREADY_USED for already onboarded employee'
+      );
+    });
+
+    it('returns 400 EMPLOYEE_CREATION_FAILED when invite lookup hits an employee in FAILED state', async () => {
+      const { inMemoryEmployees } = await import('./service.js');
+      const empId = `emp_failed_stage_${Date.now()}`;
+      inMemoryEmployees.set(empId, {
+        id: empId,
+        email: 'failed.emp@flowpay.finance',
+        firstName: 'Failed',
+        lastName: 'User',
+        status: 'FAILED',
+        failedStage: 'BMONI_USER_CREATION',
+      });
+
+      await assert.rejects(
+        async () => {
+          await EmployeeService.getInviteDetails(empId);
+        },
+        (err: any) => {
+          return err.statusCode === 400 && err.code === 'EMPLOYEE_CREATION_FAILED';
+        },
+        'Expected 400 EMPLOYEE_CREATION_FAILED for failed employee'
+      );
     });
   });
 

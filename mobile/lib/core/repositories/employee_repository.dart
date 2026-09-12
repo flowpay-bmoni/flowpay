@@ -137,22 +137,31 @@ class EmployeeModel {
 
     // Parse payroll amount
     Money? payroll;
-    if (json['payroll_amount_minor'] != null) {
-      payroll =
-          Money.fromMinor(json['payroll_amount_minor'] as int, targetCurr);
-    } else if (json['payroll_amount'] != null) {
-      payroll = Money.fromMinor(json['payroll_amount'] as int, targetCurr);
-    } else if (json['payrollAmount'] != null) {
-      payroll = Money.fromMinor(json['payrollAmount'] as int, targetCurr);
+    final rawPayroll = json['payroll_amount_minor'] ??
+        json['payrollAmountMinor'] ??
+        json['payroll_amount'] ??
+        json['payrollAmount'];
+    if (rawPayroll != null && rawPayroll is num) {
+      payroll = Money.fromMinor(rawPayroll.toInt(), targetCurr);
+    } else if (rawPayroll != null) {
+      final parsed = int.tryParse(rawPayroll.toString());
+      if (parsed != null) {
+        payroll = Money.fromMinor(parsed, targetCurr);
+      }
     }
 
     Money? usdPayroll;
-    if (json['usd_payroll_amount'] != null) {
-      usdPayroll =
-          Money.fromMinor(json['usd_payroll_amount'] as int, Currency.usd);
-    } else if (json['usdPayrollAmount'] != null) {
-      usdPayroll =
-          Money.fromMinor(json['usdPayrollAmount'] as int, Currency.usd);
+    final rawUsdPayroll = json['usd_payroll_amount_minor'] ??
+        json['usdPayrollAmountMinor'] ??
+        json['usd_payroll_amount'] ??
+        json['usdPayrollAmount'];
+    if (rawUsdPayroll != null && rawUsdPayroll is num) {
+      usdPayroll = Money.fromMinor(rawUsdPayroll.toInt(), Currency.usd);
+    } else if (rawUsdPayroll != null) {
+      final parsed = int.tryParse(rawUsdPayroll.toString());
+      if (parsed != null) {
+        usdPayroll = Money.fromMinor(parsed, Currency.usd);
+      }
     }
 
     final rawStatus = (json['status'] ?? 'CREATED').toString().toUpperCase();

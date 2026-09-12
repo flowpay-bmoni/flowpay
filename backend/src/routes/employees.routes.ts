@@ -32,6 +32,20 @@ employeesRouter.get('/', async (req, res, next) => {
       );
     }
 
+    const enrichEmployee = (emp: any) => {
+      if (!emp) return emp;
+      return {
+        ...emp,
+        failureReason: emp.failedStage
+          ? emp.failedStage === 'BMONI_USER_CREATION'
+            ? 'BMONI user creation failed'
+            : `Failed during Stage ${emp.failedStage} processing`
+          : emp.failureReason || null,
+      };
+    };
+
+    list = list.map(enrichEmployee);
+
     if (req.query.page !== undefined || req.query.limit !== undefined) {
       const { page, limit } = parsePaginationParams(req.query, 10);
       const paginated = paginateArray(list, page, limit);
@@ -47,7 +61,15 @@ employeesRouter.get('/', async (req, res, next) => {
 employeesRouter.get('/status/:status', async (req, res, next) => {
   try {
     const list = await EmployeeService.listEmployees(req.params.status);
-    res.json({ success: true, data: list });
+    const enriched = list.map((emp: any) => ({
+      ...emp,
+      failureReason: emp.failedStage
+        ? emp.failedStage === 'BMONI_USER_CREATION'
+          ? 'BMONI user creation failed'
+          : `Failed during Stage ${emp.failedStage} processing`
+        : emp.failureReason || null,
+    }));
+    res.json({ success: true, data: enriched });
   } catch (err) {
     next(err);
   }
@@ -60,7 +82,15 @@ employeesRouter.get('/:id', async (req, res, next) => {
     if (!employee) {
       return res.status(404).json({ success: false, message: 'Employee not found' });
     }
-    res.json({ success: true, data: employee });
+    const enriched = {
+      ...employee,
+      failureReason: employee.failedStage
+        ? employee.failedStage === 'BMONI_USER_CREATION'
+          ? 'BMONI user creation failed'
+          : `Failed during Stage ${employee.failedStage} processing`
+        : (employee as any).failureReason || null,
+    };
+    res.json({ success: true, data: enriched });
   } catch (err) {
     next(err);
   }
@@ -84,13 +114,16 @@ employeesRouter.post('/', async (req, res, next) => {
     } = req.body;
 
     // Handle either payrollAmountMinor directly or payrollAmount in major
-    let amountMinor = payrollAmountMinor;
-    if (amountMinor === undefined && req.body.payrollAmount !== undefined) {
+    let amountMinor: number | undefined;
+    if (payrollAmountMinor !== undefined) {
+      amountMinor = typeof payrollAmountMinor === 'string'
+        ? parseInt(payrollAmountMinor, 10)
+        : Number(payrollAmountMinor);
+    } else if (req.body.payrollAmount !== undefined) {
       amountMinor = Number.isInteger(req.body.payrollAmount)
         ? req.body.payrollAmount
         : Math.round(Number(req.body.payrollAmount) * 100);
-    }
-    if (amountMinor === undefined && req.body.salary !== undefined) {
+    } else if (req.body.salary !== undefined) {
       amountMinor = Math.round(Number(req.body.salary) * 100);
     }
 

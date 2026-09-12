@@ -3,6 +3,7 @@ import { bmoniClient } from '../../bmoni/client.js';
 import { prisma, isPostgresDb } from '../../db/index.js';
 import { env } from '../../config/env.js';
 import { mailService } from '../mail/service.js';
+import { findUserByQuery } from '../../routes/auth.routes.js';
 
 export type EmployeeLifecycleStage =
   | 'INVITED'
@@ -76,38 +77,126 @@ export class EmployeeService {
     switch (country.toUpperCase()) { case 'NG': return 'NGN'; case 'MX': return 'MXN'; case 'CA': return 'CAD'; default: return 'USD'; }
   }
 
-  // BMONI requires a phone number for user creation. If none was given,
-  // generate a valid sandbox-format one based on country. Shared by both
-  // createEmployee and retryBmoniUserCreation so retries can't send an
-  // undefined phone number the way the original bug did.
+  // BMONI requires an E.164 phone number for user creation. If none was given
+  // or a domestic format was provided, normalize to E.164. Shared by both
+  // createEmployee and retryBmoniUserCreation.
   static buildEffectivePhone(phoneNumber: string | undefined | null, country: string): string {
     const trimmed = (phoneNumber || '').trim();
-    if (trimmed) return trimmed;
     const c = country.toUpperCase();
+
+    if (trimmed) {
+      if (trimmed.startsWith('+')) {
+        return trimmed;
+      }
+      const digits = trimmed.replace(/\D/g, '');
+      if (c === 'NG') {
+        if (digits.startsWith('234') && digits.length >= 13) return `+${digits}`;
+        if (digits.startsWith('0') && digits.length === 11) return `+234${digits.slice(1)}`;
+        if (digits.length === 10) return `+234${digits}`;
+      } else if (c === 'MX') {
+        if (digits.startsWith('52') && digits.length >= 12) return `+${digits}`;
+        if (digits.length === 10) return `+52${digits}`;
+      } else if (c === 'CA' || c === 'US') {
+        if (digits.startsWith('1') && digits.length === 11) return `+${digits}`;
+        if (digits.length === 10) return `+1${digits}`;
+      }
+      return trimmed.startsWith('+') ? trimmed : `+${digits}`;
+    }
+
     if (c === 'NG') return `+23480${Math.floor(10000000 + Math.random() * 90000000)}`;
     if (c === 'MX') return `+5255${Math.floor(10000000 + Math.random() * 90000000)}`;
     return `+1415555${Math.floor(1000 + Math.random() * 9000)}`;
   }
-  // Shared 409-conflict recovery: looks up an existing BMONI user by email
-  // when POST /v1/users reports "already exists." Used by both createEmployee
-  // (first-time create) and retryBmoniUserCreation, so both self-heal instead
-  // of only the retry path.
-  static async recoverBmoniUserIdOnConflict(email: string): Promise<string | undefined> {
+
+  // Shared 409-conflict recovery:
+  // When POST /v1/users reports 409 (User already exists), BMONI docs require:
+  // "The earlier attempt landed. Recover the existing user instead of retrying."
+  // Checks error payload details, registered user registry, PostgreSQL DB,
+  // in-memory cache, and fallback API probe.
+  static async recoverBmoniUserIdOnConflict(email: string, error?: any): Promise<string | undefined> {
+    const cleanEmail = email.trim().toLowerCase();
+
+    // 1. Check error details directly if BMONI returned the existing userId in the 409 body
+    const details = error?.details || error?.responseJson;
+    if (details) {
+      const directId =
+        details.bmoniUserId ||
+        details.userId ||
+        details.id ||
+        details.user?.bmoniUserId ||
+        details.user?.id;
+      if (directId && typeof directId === 'string') {
+        console.log(`[EmployeeService] Recovered BMONI user ${directId} directly from 409 error details for ${email}`);
+        return directId;
+      }
+    }
+
+    // 2. Check local registered users (auth system)
+    try {
+      const regUser = await findUserByQuery(cleanEmail);
+      if (regUser) {
+        const userId = regUser.bmoniUserId || regUser.userId;
+        if (userId && !userId.startsWith('usr_flowpay_sandbox_') && !userId.startsWith('flowpay_')) {
+          console.log(`[EmployeeService] Recovered existing BMONI user ${userId} from user registry for ${email}`);
+          return userId;
+        }
+      }
+    } catch (_) { }
+
+    // 3. Check existing employee records in PostgreSQL
+    if (isPostgresDb()) {
+      try {
+        const existingEmp = await prisma.employee.findFirst({
+          where: {
+            email: { equals: cleanEmail, mode: 'insensitive' },
+            bmoniUserId: { not: null },
+          },
+        });
+        if (existingEmp?.bmoniUserId) {
+          console.log(`[EmployeeService] Recovered existing BMONI user ${existingEmp.bmoniUserId} from employee DB for ${email}`);
+          return existingEmp.bmoniUserId;
+        }
+
+        const existingUser = await prisma.user.findFirst({
+          where: {
+            email: { equals: cleanEmail, mode: 'insensitive' },
+            bmoniUserId: { not: null },
+          },
+        });
+        if (existingUser?.bmoniUserId) {
+          console.log(`[EmployeeService] Recovered existing BMONI user ${existingUser.bmoniUserId} from user DB for ${email}`);
+          return existingUser.bmoniUserId;
+        }
+      } catch (dbErr) {
+        console.warn('[EmployeeService] DB lookup error during 409 recovery:', dbErr);
+      }
+    }
+
+    // 4. Check in-memory employees fallback store
+    for (const emp of inMemoryEmployees.values()) {
+      if (emp.email?.toLowerCase() === cleanEmail && emp.bmoniUserId) {
+        console.log(`[EmployeeService] Recovered existing BMONI user ${emp.bmoniUserId} from in-memory employees for ${email}`);
+        return emp.bmoniUserId;
+      }
+    }
+
+    // 5. Fallback: try querying BMONI API if endpoint exists
     try {
       const listRes = await (bmoniClient as any).request('/v1/users') as {
         users?: Array<{ id: string; bmoniUserId?: string; email: string; phoneNumber?: string }>;
       };
       const matched = listRes?.users?.find(
-        (u) => u.email?.toLowerCase() === email.trim().toLowerCase()
+        (u) => u.email?.toLowerCase() === cleanEmail
       );
       if (matched) {
         const recoveredId = matched.bmoniUserId || matched.id;
-        console.log(`[EmployeeService] Recovered existing BMONI user ${recoveredId} on 409 conflict for ${email}`);
+        console.log(`[EmployeeService] Recovered existing BMONI user ${recoveredId} on 409 conflict API lookup for ${email}`);
         return recoveredId;
       }
     } catch (recoverErr) {
-      console.warn('[EmployeeService] Failed to recover existing BMONI user on 409:', recoverErr);
+      console.warn('[EmployeeService] API query fallback notice on 409:', (recoverErr as any)?.message || recoverErr);
     }
+
     return undefined;
   }
   static async listEmployees(statusFilter?: string): Promise<EmployeeRecord[]> {
@@ -211,7 +300,7 @@ export class EmployeeService {
           `[EmployeeService] BMONI reported 409 (user already exists) for ${data.email}. Attempting recovery.`
         );
         console.log('[DEBUG] Full 409 error details:', JSON.stringify(err?.details ?? err));
-        const recoveredId = await this.recoverBmoniUserIdOnConflict(data.email);
+        const recoveredId = await this.recoverBmoniUserIdOnConflict(data.email, err);
         if (recoveredId) {
           bmoniUserId = recoveredId;
           // Recovery succeeded — leave createError unset so the rest of
@@ -375,16 +464,19 @@ export class EmployeeService {
         firstName: employee.firstName.trim(),
         lastName: employee.lastName.trim(),
         email: employee.email.trim().toLowerCase(),
-        phoneNumber: this.buildEffectivePhone(employee.phoneNumber, employee.country),
+        phoneNumber: effectivePhone,
       });
       bmoniUserId = user.bmoniUserId || user.id;
+      if (!bmoniUserId) {
+        throw new Error('BMONI returned a 2xx response but no user ID was present in the body.');
+      }
     } catch (err: any) {
       const status = err?.statusCode ?? err?.status;
 
       // 409 = a user already exists with this email/phone. Per BMONI docs,
       // recover the existing user identity rather than failing the retry.
       if (status === 409) {
-        bmoniUserId = await this.recoverBmoniUserIdOnConflict(employee.email);
+        bmoniUserId = await this.recoverBmoniUserIdOnConflict(employee.email, err);
       }
 
       if (!bmoniUserId) {
@@ -403,6 +495,7 @@ export class EmployeeService {
 
     const updateData: Record<string, any> = {
       bmoniUserId: bmoniUserId || null,
+      phoneNumber: employee.phoneNumber || effectivePhone,
       status: 'INVITED',
       failedStage: null,
       updatedAt: new Date(),
@@ -417,8 +510,8 @@ export class EmployeeService {
       }
     }
     const merged = { ...(inMemoryEmployees.get(employeeId) || employee), ...updateData } as EmployeeRecord;
-    inMemoryEmployees.set(employeeId, merged);
     const finalEmployee = (updated || merged) as EmployeeRecord;
+    inMemoryEmployees.set(employeeId, finalEmployee);
 
     // Unlike createEmployee, a retry can happen long after the original
     // invite token was generated (and that token only ever lived in the
@@ -506,21 +599,37 @@ export class EmployeeService {
         }
       }
 
-      if (dbEmployee && dbEmployee.status === 'INVITED') {
-        const fallbackToken = this.generateInviteToken();
-        invite = {
-          token: fallbackToken,
-          employeeId: dbEmployee.id,
-          bmoniUserId: dbEmployee.bmoniUserId || undefined,
-          email: dbEmployee.email,
-          firstName: dbEmployee.firstName,
-          lastName: dbEmployee.lastName,
-          country: dbEmployee.country,
-          targetCurrency: dbEmployee.targetCurrency,
-          payrollAmountMinor: dbEmployee.payrollAmountMinor,
-          expiresAt: new Date(Date.now() + 72 * 60 * 60 * 1000),
-        };
-        employeeInvites.set(fallbackToken, invite);
+      if (dbEmployee) {
+        if (['READY', 'LINKED', 'ACTIVE'].includes(dbEmployee.status?.toUpperCase())) {
+          const err = new Error('This invitation has already been used and employee wallet is linked.') as Error & { statusCode?: number; code?: string };
+          err.statusCode = 410;
+          err.code = 'ALREADY_USED';
+          throw err;
+        }
+
+        if (dbEmployee.status === 'FAILED') {
+          const err = new Error('Employee onboarding is currently paused because identity creation failed. Please ask your employer to retry from the dashboard.') as Error & { statusCode?: number; code?: string };
+          err.statusCode = 400;
+          err.code = 'EMPLOYEE_CREATION_FAILED';
+          throw err;
+        }
+
+        if (dbEmployee.status === 'INVITED') {
+          const fallbackToken = this.generateInviteToken();
+          invite = {
+            token: fallbackToken,
+            employeeId: dbEmployee.id,
+            bmoniUserId: dbEmployee.bmoniUserId || undefined,
+            email: dbEmployee.email,
+            firstName: dbEmployee.firstName,
+            lastName: dbEmployee.lastName,
+            country: dbEmployee.country,
+            targetCurrency: dbEmployee.targetCurrency,
+            payrollAmountMinor: dbEmployee.payrollAmountMinor,
+            expiresAt: new Date(Date.now() + 72 * 60 * 60 * 1000),
+          };
+          employeeInvites.set(fallbackToken, invite);
+        }
       }
     }
 
@@ -583,16 +692,26 @@ export class EmployeeService {
       isMatch = true;
     }
 
-    // Match registered user email in DB if Postgres is active
-    if (!isMatch && reqUser && isPostgresDb()) {
-      try {
-        const dbUser = await prisma.user.findFirst({
-          where: { OR: [{ id: reqUser }, { bmoniUserId: reqUser }] },
-        });
-        if (dbUser && dbUser.email.toLowerCase() === targetEmail) {
-          isMatch = true;
-        }
-      } catch (_) { }
+    // Match registered user email in DB if Postgres is active, or in-memory registry
+    if (!isMatch && reqUser) {
+      if (isPostgresDb()) {
+        try {
+          const dbUser = await prisma.user.findFirst({
+            where: { OR: [{ id: reqUser }, { bmoniUserId: reqUser }] },
+          });
+          if (dbUser && dbUser.email.toLowerCase() === targetEmail) {
+            isMatch = true;
+          }
+        } catch (_) { }
+      }
+      if (!isMatch) {
+        try {
+          const inMemUser = await findUserByQuery(reqUser);
+          if (inMemUser && inMemUser.email.toLowerCase() === targetEmail) {
+            isMatch = true;
+          }
+        } catch (_) { }
+      }
     }
 
     if (!isMatch) {

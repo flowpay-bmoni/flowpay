@@ -101,6 +101,36 @@ class _EmployeeDetailScreenState extends State<EmployeeDetailScreen> {
   }
 
   Future<void> _retryOnboarding() async {
+    // If identity creation failed (Stage 1 / BMONI_USER_CREATION) or bmoniUserId is missing,
+    // re-attempt BMONI user creation first.
+    if (_emp.failedStage == 'BMONI_USER_CREATION' ||
+        (_emp.bmoniUserId == null && _emp.isFailed)) {
+      try {
+        final retried = await widget.appState.businessProvider
+            .retryEmployeeUserCreation(_emp.id);
+        setState(() {
+          _emp = retried;
+        });
+        if (mounted) {
+          BMoniToastOverlay.showSuccess(
+            context: context,
+            title: 'BMONI Identity Created',
+            message:
+                'User account created for ${_emp.fullName}. Employee is now invited.',
+          );
+        }
+        await _fetchOnboardingStatus();
+        return;
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to create identity: $e')),
+          );
+        }
+        return;
+      }
+    }
+
     final targetStage =
         _onboardingStatus?.failedStage ?? _onboardingStatus?.currentStage ?? 2;
     try {

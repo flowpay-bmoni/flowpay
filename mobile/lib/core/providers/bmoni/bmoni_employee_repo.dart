@@ -1,3 +1,4 @@
+import '../../config/api_config.dart';
 import '../../money/currency.dart';
 import '../../money/money.dart';
 import '../../network/api_client.dart';
@@ -14,7 +15,11 @@ class BmoniEmployeeRepository implements EmployeeRepository {
       final res = await apiClient.get('/api/employees');
       final list = (res is Map && res['data'] is List)
           ? res['data'] as List
-          : (res is List ? res : []);
+          : (res is Map && res['data'] is Map && res['data']['items'] is List)
+              ? res['data']['items'] as List
+              : (res is Map && res['items'] is List)
+                  ? res['items'] as List
+                  : (res is List ? res : []);
 
       return list
           .map((e) => EmployeeModel.fromJson(e as Map<String, dynamic>))
@@ -58,14 +63,15 @@ class BmoniEmployeeRepository implements EmployeeRepository {
         'usdPayrollAmountMinor': usdPayrollAmount.minorUnits,
     });
 
-    final inviteUrl = res['data']?['inviteUrl'] ??
-        res['inviteUrl'] ??
-        (res['data']?['inviteToken'] != null
-            ? 'https://app.flowpay.finance/invite/${res['data']['inviteToken']}'
-            : (res['data']?['employee']?['id'] != null
-                ? 'https://app.flowpay.finance/invite/${res['data']['employee']['id']}'
-                : 'https://app.flowpay.finance/invite'));
-    return inviteUrl as String;
+    final rawUrl = res['data']?['inviteUrl'] ?? res['inviteUrl'];
+    final rawToken = res['data']?['inviteToken'] ??
+        res['inviteToken'] ??
+        res['data']?['employee']?['id'];
+    final inviteUrl = rawUrl ??
+        (rawToken != null
+            ? '${ApiConfig.baseUrl}/invite/$rawToken'
+            : '${ApiConfig.baseUrl}/invite');
+    return inviteUrl.toString();
   }
 
   @override
