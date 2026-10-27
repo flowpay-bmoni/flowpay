@@ -18,7 +18,7 @@ One employer pays a team in the 🇺🇸 US, 🇨🇦 Canada, 🇲🇽 Mexico, �
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
 [![Flutter](https://img.shields.io/badge/Flutter-iOS%20·%20Android%20·%20Web-02569B?style=for-the-badge&logo=flutter&logoColor=white)](mobile/)
 
-[**Watch it run**](#-watch-a-real-payroll-run) · [**Payday guarantee**](#-soroban-payday-guarantee) · [**On-chain proof**](#-dont-trust-us-check-the-ledger) · [**How it works**](#-how-it-works) · [**Stellar features used**](#-what-we-use-from-stellar) · [**Run it in 10 minutes**](#-run-it-yourself) · [**Road to mainnet**](#-road-to-mainnet)
+[**🔗 Live demo (testnet)**](https://flowpay-salawuolayiwolas-projects.vercel.app) · [**Watch it run**](#-watch-a-real-payroll-run) · [**Payday guarantee**](#-soroban-payday-guarantee) · [**On-chain proof**](#-dont-trust-us-check-the-ledger) · [**How it works**](#-how-it-works) · [**Stellar features used**](#-what-we-use-from-stellar) · [**Run it in 10 minutes**](#-run-it-yourself) · [**Road to mainnet**](#-road-to-mainnet)
 
 <br/>
 
@@ -68,6 +68,7 @@ Every row below is a real, successful transaction on **Stellar testnet**. FlowPa
 | **Money mission.** "Split $200: half to naira, half locked in savings for 30 days." Converts $100 → ₦154,517 **and** locks $100 that only the owner can claim, and only after the unlock date | `path_payment_strict_send` + `create_claimable_balance` (`not(before(t))` predicate) | [`c7eb118d…`](https://stellar.expert/explorer/testnet/tx/c7eb118da2f876bfbc9bba077bb94f149ec1de219bac14a785edb929c1eb1e22) |
 | **Currency conversion to self.** Exactly $100 → Mex$1,743.53 through a USD/MXN liquidity pool | `path_payment_strict_send` | [`2ee6a07b…`](https://stellar.expert/explorer/testnet/tx/2ee6a07bb8c8a50eadcdf81b5f48f8f3c3d5f611c4541e2264bd0c118857575f) |
 | **Cross-currency send.** The recipient gets exactly ₦10,000; the sender pays $6.47 | `path_payment_strict_receive` | [`14b58a5f…`](https://stellar.expert/explorer/testnet/tx/14b58a5fe2efb34b6e0c12be3036c3ed7b429b7b714396b89fbf877691c2b969) |
+| **Payment through the live deployment.** $500 sent by email from the public web app ([live demo](https://flowpay-salawuolayiwolas-projects.vercel.app)) via the Render API | `payment` | [`ae103881…`](https://stellar.expert/explorer/testnet/tx/ae10388170c5b0e29e63df4963a58b658f4540ab3c91e6743b47d83bc3b0612f) |
 | **Send by email.** $25 to a user looked up by email, resolved to their `G…` account | `payment` | [`24515f8b…`](https://stellar.expert/explorer/testnet/tx/24515f8b517acbfc818b939d05c9aefd4e8074fec9f8303198fae5b8f3a44797) |
 | **Payday guarantee locked on Soroban.** An employer locked $20.11 for two employees in the PayrollVault contract until payday | `invoke_host_function` → `fund` | [`efe564e0…`](https://stellar.expert/explorer/testnet/tx/efe564e00b097c20946f87b7fe06cdf087bceb6826f56a251de4ee75a299be30) |
 | **Early claim refused, then claimed on payday.** The contract rejected the employee's claim before payday; after it, she claimed her $10.05 | `claim` | [`b3aca055…`](https://stellar.expert/explorer/testnet/tx/b3aca055f9f5a6c790668c0161091d4f9d22b95440c7789239cd0e9d8e5d223a) |
@@ -270,6 +271,8 @@ flowpay/
 
 ## 🚀 Run it yourself
 
+**Just want to try it?** Open the [live demo](https://flowpay-salawuolayiwolas-projects.vercel.app). Create an account, choose a PIN, and you get a testnet wallet with test USD (no real money). The API runs on Render's free tier, so the first request after a quiet period can take ~50 s while it wakes up.
+
 **Prerequisites:** Node 20+, Flutter 3.24+, and an internet connection to reach Stellar testnet. Postgres is optional: without it the backend runs in memory.
 
 ```bash
@@ -370,7 +373,7 @@ FlowPay was built so that going live is mostly configuration plus partnerships, 
 | M7 removal of the previous custodial provider · M8 real authentication + end-to-end live tests | ✅ |
 | M9 Stellar-inspired redesign + visual QA | ✅ |
 | M11 Soroban payday guarantee (contract, API, app, live test) | ✅ |
-| M10 public deploy | 🔜 |
+| M10 public deploy: web app on Vercel, API on Render, both on testnet | ✅ |
 
 The development history and every decision are recorded in [`.agents/skills/stellar/SKILL.md`](.agents/skills/stellar/SKILL.md).
 
