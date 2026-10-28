@@ -1114,6 +1114,24 @@ class FinancialOperator extends ChangeNotifier {
 
     final plan = _session.activePlan!;
 
+    // Live Stellar plans settle as ONE transaction that the user signs inside
+    // _executeAtomically — that signature is the approval. Signing a separate plan
+    // hash first would just ask for the PIN / passkey again.
+    if (executionProvider.settlesAtomically) {
+      if (pin == null) {
+        _session = _session.copyWith(
+          status: OperatorSessionStatus.error,
+          messages: [..._session.messages, OperatorMessage.operator('Execution aborted: confirmation on this device is required.', isError: true)],
+        );
+        notifyListeners();
+        return;
+      }
+      _session = _session.copyWith(status: OperatorSessionStatus.executing);
+      notifyListeners();
+      await _executeAtomically(plan, pin: pin);
+      return;
+    }
+
     // Resolve signature: either provided directly from WalletPinAuthSheet or signed via PIN
     String? resolvedSignature = signature;
     if (resolvedSignature == null && pin != null) {
@@ -1153,11 +1171,6 @@ class FinancialOperator extends ChangeNotifier {
 
     _session = _session.copyWith(status: OperatorSessionStatus.executing);
     notifyListeners();
-
-    if (executionProvider.settlesAtomically) {
-      await _executeAtomically(plan, pin: pin);
-      return;
-    }
 
     try {
       final updatedActions = <PlannedFinancialAction>[];

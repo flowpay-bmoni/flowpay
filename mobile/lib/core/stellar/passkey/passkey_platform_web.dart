@@ -10,7 +10,8 @@ external _FlowPayPasskeyJs? get _bridge;
 
 extension type _FlowPayPasskeyJs._(JSObject _) implements JSObject {
   external JSPromise<JSBoolean> supported();
-  external JSPromise<JSString> register(JSString userName);
+  external JSPromise<JSString> register(JSString userName, JSString salt);
+  external JSPromise<JSAny?> forget(JSString credentialId);
   external JSPromise<JSString> prf(JSString credentialId, JSString salt);
 }
 
@@ -29,12 +30,28 @@ class WebPasskeyAuthenticator implements PasskeyAuthenticator {
   }
 
   @override
-  Future<String> register({required String userName}) async {
+  Future<PasskeyRegistration> register({required String userName, required Uint8List salt}) async {
     final bridge = _requireBridge();
+    final String raw;
     try {
-      return (await bridge.register(userName.toJS).toDart).toDart;
+      raw = (await bridge.register(userName.toJS, _b64u(salt).toJS).toDart).toDart;
     } catch (e) {
       throw _map(e);
+    }
+    final json = jsonDecode(raw) as Map<String, dynamic>;
+    final prf = json['prf'] as String?;
+    return PasskeyRegistration(
+      json['id'] as String,
+      prf == null ? null : base64Url.decode(base64Url.normalize(prf)),
+    );
+  }
+
+  @override
+  Future<void> forget(String credentialId) async {
+    try {
+      await _bridge?.forget(credentialId.toJS).toDart;
+    } catch (_) {
+      // Best effort only.
     }
   }
 
