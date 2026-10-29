@@ -65,14 +65,24 @@ class _WalletPinAuthSheetState extends State<WalletPinAuthSheet> {
   int _failedAttempts = 0;
 
   /// Passkey wallets confirm with Face ID / fingerprint instead of a PIN.
-  bool _usesPasskey = false;
+  /// Null until known: neither the keypad nor the passkey button is shown before
+  /// then, so a passkey user never gets a keypad that can't work.
+  bool? _unlockMode;
+  bool get _usesPasskey => _unlockMode == true;
 
   @override
   void initState() {
     super.initState();
     StellarKeyVault.instance.usesPasskey().then((uses) {
-      if (mounted && uses) setState(() => _usesPasskey = true);
-    }).catchError((_) {});
+      if (mounted) setState(() => _unlockMode = uses);
+    }).catchError((Object e) {
+      if (mounted) {
+        setState(() {
+          _unlockMode = false;
+          _errorMessage = "Couldn't read this device's wallet: $e";
+        });
+      }
+    });
   }
 
   Future<void> _confirmWithPasskey() async {
@@ -286,7 +296,7 @@ class _WalletPinAuthSheetState extends State<WalletPinAuthSheet> {
               const SizedBox(height: 20),
 
               // 6 PIN Dots (PIN wallets only)
-              if (!_usesPasskey)
+              if (_unlockMode == false)
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: List.generate(6, (index) {
@@ -346,6 +356,10 @@ class _WalletPinAuthSheetState extends State<WalletPinAuthSheet> {
                       fontSize: 12,
                       color: FlowPayColors.textSecondaryOf(context)),
                 ),
+                const SizedBox(height: 32),
+              ] else if (_unlockMode == null) ...[
+                const SizedBox(height: 32),
+                const CircularProgressIndicator(color: FlowPayColors.primary),
                 const SizedBox(height: 32),
               ] else if (_usesPasskey) ...[
                 const SizedBox(height: 20),

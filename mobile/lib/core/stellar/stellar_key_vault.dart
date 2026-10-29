@@ -22,6 +22,8 @@ enum StellarVaultErrorCode {
   passkeyUnavailable,
   /// The recovery key must be saved before switching to a passkey.
   backupRequired,
+  /// A PIN was given for a passkey wallet, or the passkey for a PIN wallet.
+  wrongUnlockMethod,
 }
 
 class StellarVaultException implements Exception {
@@ -158,11 +160,23 @@ class StellarKeyVault {
           StellarVaultErrorCode.backupRequired, 'Save your recovery key before switching to a passkey.');
     }
     final keyPair = await _unlock(pin);
-    final credentialId = await _passkeyCall(() => _passkeys.register(userName: 'FlowPay wallet ${_short(keyPair.accountId)}'));
     final prfSalt = Uint8List.fromList(_cipher.newNonce() + _cipher.newNonce() + _cipher.newNonce().sublist(0, 8));
-    final secret = await _passkeyCall(() => _passkeys.prfSecret(credentialId: credentialId, salt: prfSalt));
-    final hkdfSalt = _cipher.newNonce() + _cipher.newNonce();
-    final box = await _cipher.encrypt(utf8.encode(keyPair.secretSeed), secretKey: await _passkeyKey(secret, hkdfSalt));
+    final registration = await _passkeyCall(
+        () => _passkeys.register(userName: 'FlowPay wallet ${_short(keyPair.accountId)}', salt: prfSalt));
+    final credentialId = registration.credentialId;
+    final List<int> secret;
+    final SecretBox box;
+    final List<int> hkdfSalt = _cipher.newNonce() + _cipher.newNonce();
+    try {
+      // One prompt when the browser evaluated PRF at creation; otherwise ask once more.
+      secret = registration.prfSecret ??
+          await _passkeyCall(() => _passkeys.prfSecret(credentialId: credentialId, salt: prfSalt));
+      box = await _cipher.encrypt(utf8.encode(keyPair.secretSeed), secretKey: await _passkeyKey(secret, hkdfSalt));
+    } catch (_) {
+      // Setup failed after the passkey was created: don't leave it behind.
+      await _passkeys.forget(credentialId);
+      rethrow;
+    }
     await _writeBlob({
       'v': 2,
       'publicKey': keyPair.accountId,
@@ -170,9 +184,7 @@ class StellarKeyVault {
       'credentialId': credentialId,
       'prfSalt': base64Encode(prfSalt),
       'salt': base64Encode(hkdfSalt),
-      'nonce': base64Encode(box.nonce),
-      'cipherText': base64Encode(box.cipherText),
-      'mac': base64Encode(box.mac.bytes),
+      ..._boxFields(box),
     });
   }
 
@@ -228,7 +240,7 @@ class StellarKeyVault {
   Future<void> changePin({required String currentPin, required String newPin}) async {
     if (await usesPasskey()) {
       throw const StellarVaultException(
-          StellarVaultErrorCode.pinInvalid, 'This wallet uses a passkey. Switch back to a PIN first.');
+          StellarVaultErrorCode.wrongUnlockMethod, 'This wallet uses a passkey. Switch back to a PIN first.');
     }
     final keyPair = await _unlock(currentPin);
     await _persist(keyPair, newPin, allowOverwrite: true);
@@ -281,21 +293,14 @@ class StellarKeyVault {
     final salt = _cipher.newNonce() + _cipher.newNonce(); // 24 random bytes
     final secretKey = await _deriveKey(pin, salt);
     final box = await _cipher.encrypt(utf8.encode(keyPair.secretSeed), secretKey: secretKey);
-    final blob = jsonEncode({
+    await _writeBlob({
       'v': 1,
       'publicKey': keyPair.accountId,
       'kdf': _kdfPin,
       'iterations': _kdfIterations,
       'salt': base64Encode(salt),
-      'nonce': base64Encode(box.nonce),
-      'cipherText': base64Encode(box.cipherText),
-      'mac': base64Encode(box.mac.bytes),
+      ..._boxFields(box),
     });
-    await _wrap(() async {
-      await _store.write(_blobKey, blob);
-      await _store.delete(_failuresKey);
-    });
-    _cachedPublicKey = keyPair.accountId;
     return keyPair.accountId;
   }
 
@@ -306,18 +311,14 @@ class StellarKeyVault {
     }
     if (blob['kdf'] == _kdfPasskey) return _unlockWithPasskey(blob, pin);
     if (pin == passkey) {
-      throw const StellarVaultException(StellarVaultErrorCode.pinInvalid, 'This wallet is protected by a PIN.');
+      throw const StellarVaultException(StellarVaultErrorCode.wrongUnlockMethod, 'This wallet is protected by a PIN.');
     }
     _assertPinFormat(pin);
     await _assertNotLockedOut();
 
     final secretKey = await _deriveKey(pin, base64Decode(blob['salt'] as String),
         iterations: blob['iterations'] as int);
-    final box = SecretBox(
-      base64Decode(blob['cipherText'] as String),
-      nonce: base64Decode(blob['nonce'] as String),
-      mac: Mac(base64Decode(blob['mac'] as String)),
-    );
+    final box = _boxFrom(blob);
     try {
       final seed = utf8.decode(await _cipher.decrypt(box, secretKey: secretKey));
       await _wrap(() => _store.delete(_failuresKey));
@@ -331,17 +332,13 @@ class StellarKeyVault {
   Future<KeyPair> _unlockWithPasskey(Map<String, dynamic> blob, String pin) async {
     if (pin != passkey) {
       throw const StellarVaultException(
-          StellarVaultErrorCode.pinInvalid, 'This wallet is unlocked with your passkey (Face ID / fingerprint).');
+          StellarVaultErrorCode.wrongUnlockMethod, 'This wallet is unlocked with your passkey (Face ID / fingerprint).');
     }
     final secret = await _passkeyCall(() => _passkeys.prfSecret(
           credentialId: blob['credentialId'] as String,
           salt: base64Decode(blob['prfSalt'] as String),
         ));
-    final box = SecretBox(
-      base64Decode(blob['cipherText'] as String),
-      nonce: base64Decode(blob['nonce'] as String),
-      mac: Mac(base64Decode(blob['mac'] as String)),
-    );
+    final box = _boxFrom(blob);
     try {
       final key = await _passkeyKey(secret, base64Decode(blob['salt'] as String));
       return KeyPair.fromSecretSeed(utf8.decode(await _cipher.decrypt(box, secretKey: key)));
@@ -349,6 +346,19 @@ class StellarKeyVault {
       throw const StellarVaultException(StellarVaultErrorCode.pinMismatch, "That passkey doesn't unlock this wallet.");
     }
   }
+
+  /// The encrypted seed, stored the same way for PIN and passkey wallets.
+  static Map<String, String> _boxFields(SecretBox box) => {
+        'nonce': base64Encode(box.nonce),
+        'cipherText': base64Encode(box.cipherText),
+        'mac': base64Encode(box.mac.bytes),
+      };
+
+  static SecretBox _boxFrom(Map<String, dynamic> blob) => SecretBox(
+        base64Decode(blob['cipherText'] as String),
+        nonce: base64Decode(blob['nonce'] as String),
+        mac: Mac(base64Decode(blob['mac'] as String)),
+      );
 
   /// AES key from the passkey's PRF output (HKDF-SHA256, wallet-specific salt).
   Future<SecretKey> _passkeyKey(List<int> prfSecret, List<int> salt) {

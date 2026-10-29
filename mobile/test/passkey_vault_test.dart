@@ -92,4 +92,29 @@ void main() {
     expect(await vault.usesPasskey(), isFalse);
     expect(await vault.verifyPin('654321'), isTrue);
   });
+
+  test('browsers that return PRF at creation need a single prompt to switch', () async {
+    final passkeys = FakePasskeys(prfAtCreate: true);
+    final vault = vaultWith(passkeys);
+    await vault.createWallet(pin: pin);
+    await vault.markBackedUp();
+    passkeys.prompts = 0;
+    await vault.enablePasskey(pin: pin);
+    expect(passkeys.prompts, 1);
+    expect(await vault.verifyPin(StellarKeyVault.passkey), isTrue, reason: 'the create-time secret unlocks it later');
+  });
+
+  test('a setup that fails after the passkey was created asks the browser to forget it', () async {
+    final passkeys = FakePasskeys();
+    final vault = vaultWith(passkeys);
+    await vault.createWallet(pin: pin);
+    await vault.markBackedUp();
+
+    // Approve creation, then cancel the second prompt.
+    passkeys.cancelPrfAfterRegister = true;
+    await expectLater(vault.enablePasskey(pin: pin),
+        throwsA(isA<StellarVaultException>().having((e) => e.code, 'code', StellarVaultErrorCode.passkeyCancelled)));
+    expect(passkeys.forgotten, hasLength(1), reason: 'the orphaned passkey is signalled as unknown');
+    expect(await vault.usesPasskey(), isFalse);
+  });
 }

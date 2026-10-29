@@ -182,7 +182,7 @@ removed completely.
   * **Preview harness** `mobile/lib/main_preview.dart` (dev-only, never shipped): renders one screen with demo data —
     `flutter build web -t lib/main_preview.dart -o build/preview`, then `?screen=dashboard|wallets|send|missions|activity|security|bank|business|team|payroll|audit&theme=dark|light`.
   * Tests: 179 pass / 6 opt-in live skipped; analyzer clean.
-* [ ] **M10 — Web deploy & docs** (in progress):
+* [x] **M10 — Web deploy & docs**:
   * [x] README rewritten for the Stellar build (on-chain proof table with verified testnet tx hashes, signing flow,
         Stellar primitives map, security model + honest limits, setup, env reference); screenshots in `docs/screenshots/`.
   * [x] Production refuses to start with the public default `FLOWPAY_JWT_SECRET` (or any secret < 32 chars) —
@@ -262,6 +262,14 @@ removed completely.
         enable → lock → unlock → $500 testnet payment confirmed by passkey (`1e0c35c4…`). Fixed along the way: FlowPayButton
         labels overflowed at phone width (now ellipsize); PIN wording/badges/duplicate biometric button in passkey mode.
   * Native apps still use PIN + OS keychain (PRF on native needs a platform plugin — follow-up).
+
+* [x] **M10 deployed (2026-10-28)**: web app on Vercel — https://flowpay-salawuolayiwolas-projects.vercel.app
+        (project "flowpay", builds from the fork `OlayiwolaSherrifSalawu/flowpay` main; Root Directory `./`;
+        `vercel.json`: `framework: null`, `bash build-web.sh` with Flutter 3.47.2, `rewrites` SPA fallback — the old file
+        mixed `routes`+`headers`, which Vercel rejects). Deployment Protection off. `flowpay-stellar.vercel.app` was chosen but
+        is not attached yet (DEPLOYMENT_NOT_FOUND) — passkeys bind to whichever domain users register on, so settle it early.
+        Verified: assets, `/invite/*` deep links, wasm MIME, CORS to Render, and a real $500 payment through the live site +
+        API (`ae103881…`).
 
 ## 🛠️ 6. Runbook & Verification
 

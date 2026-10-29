@@ -195,7 +195,9 @@ class _AiOperatorModalState extends State<AiOperatorModal> {
           amountDisplay: plan.totalDebit.toFormattedString(),
           recipient: plan.summary,
           onAuthorize: (pin) async {
-            if (!await StellarKeyVault.instance.verifyPin(pin)) {
+            // PINs are checked here so typos show in the sheet. A passkey has no
+            // typos: checking it here would just prompt twice (signing prompts once).
+            if (pin != StellarKeyVault.passkey && !await StellarKeyVault.instance.verifyPin(pin)) {
               throw const StellarVaultException(StellarVaultErrorCode.pinMismatch, 'Incorrect PIN.');
             }
             return pin;

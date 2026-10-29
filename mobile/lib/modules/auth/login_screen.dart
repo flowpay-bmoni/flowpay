@@ -24,15 +24,28 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _pin = TextEditingController();
   final _recoveryKey = TextEditingController();
   bool? _hasWallet;
+
+  /// The wallet on this device is unlocked with a passkey, not a PIN.
+  bool _usesPasskey = false;
   bool _busy = false;
   String? _error;
 
   @override
   void initState() {
     super.initState();
-    StellarKeyVault.instance.hasWallet().then((v) {
-      if (mounted) setState(() => _hasWallet = v);
-    });
+    _load();
+  }
+
+  Future<void> _load() async {
+    final vault = StellarKeyVault.instance;
+    final has = await vault.hasWallet();
+    final passkey = has && await vault.usesPasskey().catchError((_) => false);
+    if (mounted) {
+      setState(() {
+        _hasWallet = has;
+        _usesPasskey = passkey;
+      });
+    }
   }
 
   @override
@@ -43,9 +56,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Future<void> _signIn() async {
+    if (_usesPasskey) return _signInWithPasskey();
     final pin = _pin.text.trim();
     if (pin.length != StellarKeyVault.pinLength) {
-      setState(() => _error = 'Enter your ${StellarKeyVault.pinLength}-digit PIN.');
+      setState(
+          () => _error = 'Enter your ${StellarKeyVault.pinLength}-digit PIN.');
       return;
     }
     setState(() {
@@ -54,7 +69,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     });
     try {
       if (_hasWallet == false) {
-        await StellarKeyVault.instance.importWallet(secretSeed: _recoveryKey.text, pin: pin);
+        await StellarKeyVault.instance
+            .importWallet(secretSeed: _recoveryKey.text, pin: pin);
       } else if (!await StellarKeyVault.instance.verifyPin(pin)) {
         // Checked on-device first: typos fail instantly and never hit the network.
         setState(() => _error = 'Incorrect PIN.');
@@ -62,10 +78,37 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       }
       final result = await WalletLogin.signIn(pin: pin);
       await ref.read(secureStorageServiceProvider).saveAuthToken(result.token);
-      await ref.read(appLockStateProvider.notifier).loginAsPersona(result.profile);
+      await ref
+          .read(appLockStateProvider.notifier)
+          .loginAsPersona(result.profile);
       if (mounted) Navigator.of(context).popUntil((route) => route.isFirst);
     } on StellarVaultException catch (e) {
       setState(() => _error = e.message);
+    } catch (e) {
+      setState(() => _error = '$e');
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  /// One passkey prompt signs the server challenge, which both proves the user
+  /// and signs them in — no separate local check.
+  Future<void> _signInWithPasskey() async {
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      final result = await WalletLogin.signIn(pin: StellarKeyVault.passkey);
+      await ref.read(secureStorageServiceProvider).saveAuthToken(result.token);
+      await ref
+          .read(appLockStateProvider.notifier)
+          .loginAsPersona(result.profile);
+      if (mounted) Navigator.of(context).popUntil((route) => route.isFirst);
+    } on StellarVaultException catch (e) {
+      setState(() => _error = e.code == StellarVaultErrorCode.passkeyCancelled
+          ? 'Cancelled. Try again.'
+          : e.message);
     } catch (e) {
       setState(() => _error = '$e');
     } finally {
@@ -83,12 +126,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           : ListView(
               padding: const EdgeInsets.all(24),
               children: [
-                Text(restoring ? 'Restore your wallet' : 'Unlock your wallet', style: FlowPayTypography.headingSm),
+                Text(restoring ? 'Restore your wallet' : 'Unlock your wallet',
+                    style: FlowPayTypography.headingSm),
                 const SizedBox(height: 8),
                 Text(
                   restoring
                       ? 'This device has no FlowPay wallet yet. Paste the recovery key you saved, and choose a PIN for this device.'
-                      : 'Your PIN unlocks the wallet on this device, which signs you in. FlowPay never sees your PIN.',
+                      : _usesPasskey
+                          ? 'Your passkey (Face ID / fingerprint) unlocks the wallet on this device, which signs you in.'
+                          : 'Your PIN unlocks the wallet on this device, which signs you in. FlowPay never sees your PIN.',
                   style: FlowPayTypography.bodySmall,
                 ),
                 const SizedBox(height: 20),
@@ -97,34 +143,47 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     key: const Key('login_recovery_key'),
                     controller: _recoveryKey,
                     obscureText: true,
-                    decoration: const InputDecoration(labelText: 'Recovery key (starts with S)'),
+                    decoration: const InputDecoration(
+                        labelText: 'Recovery key (starts with S)'),
                   ),
                   const SizedBox(height: 12),
                 ],
-                TextField(
-                  key: const Key('login_pin'),
-                  controller: _pin,
-                  obscureText: true,
-                  keyboardType: TextInputType.number,
-                  maxLength: StellarKeyVault.pinLength,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  decoration: InputDecoration(labelText: restoring ? 'New PIN for this device' : 'PIN', counterText: ''),
-                  onSubmitted: (_) => _signIn(),
-                ),
+                if (!_usesPasskey)
+                  TextField(
+                    key: const Key('login_pin'),
+                    controller: _pin,
+                    obscureText: true,
+                    keyboardType: TextInputType.number,
+                    maxLength: StellarKeyVault.pinLength,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    decoration: InputDecoration(
+                        labelText:
+                            restoring ? 'New PIN for this device' : 'PIN',
+                        counterText: ''),
+                    onSubmitted: (_) => _signIn(),
+                  ),
                 if (_error != null) ...[
                   const SizedBox(height: 10),
-                  Text(_error!, key: const Key('login_error'), style: const TextStyle(color: FlowPayColors.stateError)),
+                  Text(_error!,
+                      key: const Key('login_error'),
+                      style: const TextStyle(color: FlowPayColors.stateError)),
                 ],
                 const SizedBox(height: 20),
                 FlowPayButton(
                   key: const Key('login_submit'),
-                  text: restoring ? 'Restore and sign in' : 'Sign in',
+                  text: restoring
+                      ? 'Restore and sign in'
+                      : _usesPasskey
+                          ? 'Sign in with passkey'
+                          : 'Sign in',
+                  icon: _usesPasskey ? Icons.fingerprint : null,
                   isLoading: _busy,
                   onPressed: _busy ? null : _signIn,
                 ),
                 const SizedBox(height: 16),
                 TextButton(
-                  onPressed: () => Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const SignupScreen())),
+                  onPressed: () => Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(builder: (_) => const SignupScreen())),
                   child: const Text('New to FlowPay? Create an account'),
                 ),
               ],

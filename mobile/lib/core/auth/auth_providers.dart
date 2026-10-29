@@ -2,6 +2,7 @@ import 'wallet_login.dart';
 import '../stellar/stellar_key_vault.dart';
 import 'package:flutter/foundation.dart' show debugPrint;
 import '../network/api_client.dart';
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
@@ -325,13 +326,18 @@ class AppLockNotifier extends StateNotifier<AppLockState> {
     } on StellarVaultException catch (e) {
       debugPrint('[AppLock] passkey unlock failed: ${e.message}');
       return false;
+    } on WalletLoginException catch (e) {
+      // The server answered and refused (expired challenge, unknown account…):
+      // don't paper over it with a local unlock and a session that doesn't exist.
+      debugPrint('[AppLock] sign-in refused: ${e.message}');
+      return false;
+    } on TimeoutException catch (e) {
+      ok = await _localPasskeyCheck(e);
+    } on http.ClientException catch (e) {
+      ok = await _localPasskeyCheck(e);
     } catch (e) {
-      debugPrint('[AppLock] sign-in unavailable, checking passkey locally: $e');
-      try {
-        ok = await _storage.verifyFallbackPin(StellarKeyVault.passkey);
-      } on StellarVaultException {
-        return false;
-      }
+      debugPrint('[AppLock] passkey unlock failed: $e');
+      return false;
     }
     if (!ok) return false;
     await _storage.updateAuthTimestamp();
@@ -342,6 +348,17 @@ class AppLockNotifier extends StateNotifier<AppLockState> {
       lastResult: AppLockAuthResult.success(),
     );
     return true;
+  }
+
+  /// Offline only (the server couldn't be reached at all, so no prompt was shown
+  /// yet): confirm the passkey locally so the app still opens.
+  Future<bool> _localPasskeyCheck(Object reason) async {
+    debugPrint('[AppLock] server unreachable, checking passkey locally: $reason');
+    try {
+      return await _storage.verifyFallbackPin(StellarKeyVault.passkey);
+    } on StellarVaultException {
+      return false;
+    }
   }
 
   /// Fallback In-App PIN Entry (6 digits)

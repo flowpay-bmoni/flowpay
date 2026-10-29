@@ -42,6 +42,7 @@ class _AppAuthGateState extends ConsumerState<AppAuthGate>
   /// The wallet is unlocked with a passkey instead of a PIN (web).
   bool _usesPasskey = false;
   bool _passkeyBusy = false;
+  bool _passkeyModeCheckedForThisLock = false;
 
   @override
   void initState() {
@@ -132,6 +133,7 @@ class _AppAuthGateState extends ConsumerState<AppAuthGate>
     }
 
     // 2. App is Locked -> Show Unlock Screen
+    if (!lockState.isLocked) _passkeyModeCheckedForThisLock = false;
     if (lockState.isLocked) {
       return _buildLockScreen(context, lockState);
     }
@@ -184,8 +186,12 @@ class _AppAuthGateState extends ConsumerState<AppAuthGate>
   }
 
   Widget _buildLockScreen(BuildContext context, AppLockState lockState) {
-    // The unlock method can change in Security (PIN ↔ passkey) while the app runs.
-    WidgetsBinding.instance.addPostFrameCallback((_) => _checkPasskeyMode());
+    // The unlock method can change in Security (PIN ↔ passkey) while the app runs,
+    // so re-read it once each time the app locks — not on every rebuild.
+    if (!_passkeyModeCheckedForThisLock) {
+      _passkeyModeCheckedForThisLock = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) => _checkPasskeyMode());
+    }
     final isExpired = lockState.isAuthExpired;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bgColor =

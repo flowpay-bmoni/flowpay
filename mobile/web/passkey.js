@@ -40,7 +40,9 @@
     }
   }
 
-  async function register(userName) {
+  // Returns JSON {id, prf?}: browsers that evaluate PRF at creation hand back the
+  // secret right away, so switching to a passkey needs only one prompt.
+  async function register(userName, saltB64u) {
     const credential = await navigator.credentials.create({
       publicKey: {
         rp: { name: 'FlowPay' },
@@ -51,15 +53,30 @@
           { type: 'public-key', alg: -257 },
         ],
         authenticatorSelection: { residentKey: 'preferred', userVerification: 'required' },
-        extensions: { prf: {} },
+        extensions: { prf: { eval: { first: fromB64u(saltB64u) } } },
         timeout: 120000,
       },
     });
+    const id = toB64u(credential.rawId);
     const ext = credential.getClientExtensionResults();
     if (!ext || !ext.prf || ext.prf.enabled !== true) {
+      await forget(id);
       throw new Error('This passkey or browser does not support the PRF extension FlowPay needs.');
     }
-    return toB64u(credential.rawId);
+    const first = ext.prf.results && ext.prf.results.first;
+    return JSON.stringify({ id, prf: first ? toB64u(first) : null });
+  }
+
+  // Best effort: tell the browser / password manager this passkey is no longer
+  // used, so a failed setup doesn't leave an orphaned "FlowPay wallet" entry.
+  async function forget(credentialIdB64u) {
+    try {
+      if (typeof PublicKeyCredential.signalUnknownCredential === 'function') {
+        await PublicKeyCredential.signalUnknownCredential({ rpId: location.hostname, credentialId: credentialIdB64u });
+      }
+    } catch (_) {
+      // Not supported or refused: nothing else a website can do.
+    }
   }
 
   async function prf(credentialIdB64u, saltB64u) {
@@ -78,5 +95,5 @@
     return toB64u(first);
   }
 
-  window.flowpayPasskey = { supported, register, prf };
+  window.flowpayPasskey = { supported, register, prf, forget };
 })();
